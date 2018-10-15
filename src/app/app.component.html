@@ -1,0 +1,10 @@
+<h1>{{ title }}</h1>
+
+<input #addressBox />
+<div *ngIf="marker">{{marker.label}}</div>
+<!-- this creates a google map on the page with the given lat/lng from -->
+<!-- the component as the initial center of the map: -->
+<agm-map #agmMap *ngIf="map" [latitude]="map.lat" [longitude]="map.lng" [zoom]="map.zoom" (mapClick)="mapClicked($event)">
+    <agm-marker *ngIf="marker" [markerDraggable]="marker.draggable" [latitude]="marker.lat" [longitude]="marker.lng"
+        [draggable]="marker.draggable" (dragEnd)="markerDragged($event)"></agm-marker>
+</agm-map>

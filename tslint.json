@@ -1,0 +1,20 @@
+{
+    "extends": ["tslint:latest"],
+    "rules": {
+        "ordered-imports": false,
+        "interface-name": [true, "never-prefix"],
+        "no-implicit-dependencies": [true, "dev"],
+        "object-literal-sort-keys": false,
+        "member-access": false,
+        "comma-dangle": ["error", "never"],
+        "trailing-comma": false,
+        "no-console": [false],
+        "quotemark": [true, "single"],
+        "no-submodule-imports": [
+            true,
+            "rxjs",
+            "@angular/platform-browser",
+            "@angular/core/testing"
+        ]
+    }
+}

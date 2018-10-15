@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "removeComments": true,
+        "experimentalDecorators": true,
+        "allowJs": true,
+        "emitDecoratorMetadata": true
+    },
+    "awesomeTypescriptLoaderOptions": {
+        "useCache": true,
+        "forceIsolatedModules": true,
+        "reportFiles": [
+            "src/**/*.{ts,tsx}"
+        ]
+    }
+}

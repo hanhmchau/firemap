@@ -1,0 +1,82 @@
+@import "../node_modules/pretty-checkbox/dist/pretty-checkbox.css";
+@import "../node_modules/font-awesome/css/font-awesome.min.css";
+@import "../node_modules/froala-editor/css/froala_editor.pkgd.min.css";
+@import "~@ng-select/ng-select/themes/default.theme.css";
+
+* {
+    font-family: "Roboto";
+    font-weight: 300;
+    color: #333;
+}
+
+@font-face {
+    font-family: "Roboto";
+    font-style: regular;
+    font-weight: 700;
+    src: url("./fonts/Roboto-Bold.ttf") format("truetype");
+}
+@font-face {
+    font-family: "Roboto";
+    font-style: italic;
+    font-weight: 700;
+    src: url("./fonts/Roboto-BoldItalic.ttf") format("truetype");
+}
+@font-face {
+    font-family: "Roboto";
+    font-style: italic;
+    font-weight: 500;
+    src: url("./fonts/Roboto-Italic.ttf") format("truetype");
+}
+@font-face {
+    font-family: "Roboto";
+    font-style: regular;
+    font-weight: 300;
+    src: url("./fonts/Roboto-Light.ttf") format("truetype");
+}
+@font-face {
+    font-family: "Roboto";
+    font-style: italic;
+    font-weight: 300;
+    src: url("./fonts/Roboto-LightItalic.ttf") format("truetype");
+}
+@font-face {
+    font-family: "Roboto";
+    font-style: regular;
+    font-weight: 500;
+    src: url("./fonts/Roboto-Medium.ttf") format("truetype");
+}
+@font-face {
+    font-family: "Roboto";
+    font-style: italic;
+    font-weight: 500;
+    src: url("./fonts/Roboto-MediumItalic.ttf") format("truetype");
+}
+@font-face {
+    font-family: "Roboto";
+    font-style: regular;
+    font-weight: 500;
+    src: url("./fonts/Roboto-Regular.ttf") format("truetype");
+}
+@font-face {
+    font-family: "Roboto";
+    font-style: regular;
+    font-weight: 100;
+    src: url("./fonts/Roboto-Thin.ttf") format("truetype");
+}
+@font-face {
+    font-family: "Roboto";
+    font-style: italic;
+    font-weight: 100;
+    src: url("./fonts/Roboto-ThinItalic.ttf") format("truetype");
+}
+
+a[href="https://www.froala.com/wysiwyg-editor?k=u"] {
+    display: none !important;
+    position: absolute;
+    top: -99999999px;
+}
+
+#article_content div,
+#article_content span {
+    max-width: 800px !important;
+}
