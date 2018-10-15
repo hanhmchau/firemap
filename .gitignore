@@ -2,3 +2,4 @@
 /dist
 /.awcache
 *.log
+\.env

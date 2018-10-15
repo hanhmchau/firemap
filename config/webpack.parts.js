@@ -5,6 +5,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const PurifyCSSPlugin = require("purifycss-webpack");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const webpack = require('webpack');
+const Dotenv = require('dotenv-webpack');
 
 exports.devServer = ({ host, port } = {}) => ({
     devServer: {
@@ -156,5 +157,11 @@ exports.provideJquery = () => ({
             $: "jquery",
             jQuery: "jquery"
           })
+    ]
+});
+
+exports.dotEnv = () => ({
+    plugins: [
+        new Dotenv()
     ]
 });

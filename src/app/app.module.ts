@@ -20,7 +20,7 @@ import { AgmCoreModule } from "@agm/core";
         AppRoutingModule,
         BrowserAnimationsModule,
         AgmCoreModule.forRoot({
-            apiKey: "AIzaSyCD3gF2645m_FEuF-GmokbKHhJiyjHQ7Nc",
+            apiKey: process.env.MAP_API,
             libraries: ["places"]
         })
     ],

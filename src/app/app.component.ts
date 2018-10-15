@@ -125,6 +125,7 @@ export class AppComponent {
         return Observable.create((observer: Observer<LatLngLiteral>) => {
             if ('geolocation' in navigator) {
                 navigator.geolocation.getCurrentPosition((position: Position) => {
+                    console.log('allowed!');
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
                     const latLng: LatLngLiteral = {
@@ -132,6 +133,12 @@ export class AppComponent {
                         lng
                     };
                     observer.next(latLng);
+                }, () => {
+                    console.log('uh oh, not allowed!')
+                    observer.next({
+                        lat: 0,
+                        lng: 0
+                    });
                 });
             }
         });
