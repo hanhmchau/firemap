@@ -1,7 +1,5 @@
-@import "../node_modules/pretty-checkbox/dist/pretty-checkbox.css";
-@import "../node_modules/font-awesome/css/font-awesome.min.css";
-@import "../node_modules/froala-editor/css/froala_editor.pkgd.min.css";
 @import "~@ng-select/ng-select/themes/default.theme.css";
+@import "~bootstrap/dist/css/bootstrap.min.css";
 
 * {
     font-family: "Roboto";
@@ -79,4 +77,17 @@ a[href="https://www.froala.com/wysiwyg-editor?k=u"] {
 #article_content div,
 #article_content span {
     max-width: 800px !important;
+}
+
+.row {
+    overflow: hidden;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+.col {
+    padding-left: 0;
+    padding-right: 0;
 }

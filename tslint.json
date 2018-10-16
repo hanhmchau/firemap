@@ -11,10 +11,7 @@
         "no-console": [false],
         "quotemark": [true, "single"],
         "no-submodule-imports": [
-            true,
-            "rxjs",
-            "@angular/platform-browser",
-            "@angular/core/testing"
+            false
         ]
     }
 }
