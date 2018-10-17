@@ -1,6 +1,6 @@
-<input #addressBox class="form-control position-absolute" placeholder="Search..." />
+<input #addressBox class="position-absolute" class="form-control" placeholder="Search..." />
 <div *ngIf="marker">{{marker.label}}</div>
-<agm-map #agmMap *ngIf="map" [latitude]="map.lat" [longitude]="map.lng" [zoom]="map.zoom" (mapClick)="mapClicked($event)">
+<agm-map class="position-absolute" #agmMap *ngIf="map" [latitude]="map.lat" [longitude]="map.lng" [zoom]="map.zoom" (mapClick)="mapClicked($event)">
     <agm-marker *ngIf="marker" [markerDraggable]="marker.draggable" [latitude]="marker.lat" [longitude]="marker.lng"
         [draggable]="marker.draggable" (dragEnd)="markerDragged($event)"></agm-marker>
 </agm-map>

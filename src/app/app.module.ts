@@ -1,3 +1,4 @@
+import { MapService } from './services/map.service';
 import { AddressComponent } from './address/address.component';
 import { MapComponent } from './map/map.component';
 import { AddressContainerComponent } from './address-container/address-container.component';
@@ -38,7 +39,8 @@ import { AngularFontAwesomeModule } from 'angular-font-awesome';
     ],
     exports: [],
     providers: [
-        RoutingService
+        RoutingService,
+        MapService
         // add injectable things here
     ],
     bootstrap: [AppComponent]

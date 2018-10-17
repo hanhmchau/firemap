@@ -1,7 +1,9 @@
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, Input, Renderer } from '@angular/core';
 import { MouseEvent, MapsAPILoader, AgmMap, LatLngLiteral } from '@agm/core';
 import { Observable, Observer } from 'rxjs';
 import '../../../node_modules/google-maps-api-typings/index.d';
+import Map from '../models/map';
+import Marker from '../models/marker';
 import {
     GoogleMapsClient,
     createClient,
@@ -9,20 +11,8 @@ import {
     GeocodingResponse,
     GeocodingResult
 } from '@google/maps';
-
-interface Map {
-    lat: number;
-    lng: number;
-    zoom?: number;
-}
-
-// just an interface for type safety.
-interface Marker {
-    lat: number;
-    lng: number;
-    label?: string;
-    draggable?: boolean;
-}
+import { MapService } from '../services/map.service';
+import Address from '../models/address';
 
 @Component({
     selector: 'app-map',
@@ -30,6 +20,8 @@ interface Marker {
     styleUrls: ['./map.component.css']
 })
 export class MapComponent {
+    @Input()
+    address: Address;
     marker: Marker;
     map: Map;
     @ViewChild('addressBox')
@@ -38,34 +30,60 @@ export class MapComponent {
     public agmMapRef: AgmMap;
     client: GoogleMapsClient;
     autocomplete: google.maps.places.Autocomplete;
+    @Input() width: string;
 
-    constructor(private mapsAPILoader: MapsAPILoader) {
+    constructor(
+        private renderer: Renderer,
+        private mapsAPILoader: MapsAPILoader,
+        private mapService: MapService
+    ) {
+    }
+
+    initializeMap() {
         this.marker = {
-            lat: 0,
-            lng: 0,
+            lat: this.address.lat,
+            lng: this.address.lng,
             draggable: true
         };
         this.map = {
-            lat: 0,
-            lng: 0,
-            zoom: 8
+            lat: this.address.lat,
+            lng: this.address.lng,
+            zoom: 12
         };
     }
-    ngOnInit(): void {
-        this.client = createClient({
-            key: process.env.MAP_API
-        });
-        this.mapsAPILoader.load().then(() => {
-            this.getCurrentPosition().subscribe((latLng: LatLngLiteral) => {
-                this.updateMarker(latLng.lat, latLng.lng);
-                this.updateMap(latLng.lat, latLng.lng, 12);
-                const bounds = new google.maps.Circle({
-                    center: latLng,
-                    radius: 25
-                });
 
-                this.initAutocomplete(bounds);
-            });
+    initializeAutocomplete() {
+        this.client = createClient({ key: process.env.MAP_API });
+        this.mapsAPILoader.load().then(() => {
+            this.getCurrentPosition().subscribe(
+                (latLng: LatLngLiteral) => {
+                    this.updateMarker(latLng.lat, latLng.lng);
+                    this.updateMap(latLng.lat, latLng.lng, 12);
+                    const bounds = new google.maps.Circle({
+                        center: latLng,
+                        radius: 25
+                    });
+
+                    this.initAutocomplete(bounds);
+                }
+            );
+        });
+    }
+
+    ngOnInit(): void {
+        this.initializeMap();
+        this.initializeAutocomplete();
+
+        this.mapService.getActiveMarker().subscribe(marker => {
+            this.marker.lat = marker.lat;
+            this.marker.lng = marker.lng;
+            if (marker.draggable !== undefined) {
+                this.marker.draggable = marker.draggable;
+            }
+        });
+
+        this.mapService.getActiveMap().subscribe((map: Map) => {
+            this.updateMap(map.lat, map.lng, 17);
         });
     }
 
@@ -90,16 +108,8 @@ export class MapComponent {
             const lng = place.geometry.location.lng();
             this.marker.lat = lat;
             this.marker.lng = lng;
-            this.map.lat = this.marker.lat;
-            this.map.lng = this.marker.lng;
-            this.map.zoom = 17;
-            this.agmMapRef.triggerResize(true).then(() => {
-                (this.agmMapRef as any)._mapsWrapper.setCenter({
-                    lat,
-                    lng
-                });
-                this.agmMapRef.zoomChange.emit(17);
-            });
+            this.updateMap(lat, lng, 17);
+            this.mapService.setActiveMarker(this.marker);
         }
     }
 
@@ -115,7 +125,7 @@ export class MapComponent {
             },
             (err: any, response: ClientResponse<GeocodingResponse>) => {
                 response.json.results.forEach((res: GeocodingResult) => {
-                    console.log(res);
+                    console.log(res.address_components);
                 });
             }
         );

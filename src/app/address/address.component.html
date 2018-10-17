@@ -1,13 +1,40 @@
-<td>{{address.street}}</td>
-<td>{{address.ward}}</td>
-<td>{{address.district}}</td>
-<td>{{address.city}}</td>
-<td>{{address.country}}</td>
-<td>
-    <button type="button" class="btn btn-default" aria-label="Edit">
-        <fa name="pencil"></fa>
-    </button>
-</td>
-<td><button>
-        <fa name="trash-o"></fa>
-    </button></td>
+<ng-container *ngIf="!editing; else editingTemplate">
+    <td class="vert-aligned pl-2">{{address.street}}</td>
+    <td class="vert-aligned pl-2">{{address.ward}}</td>
+    <td class="vert-aligned pl-2">{{address.district}}</td>
+    <td class="vert-aligned pl-2">{{address.city}}</td>
+    <td class="vert-aligned pl-2">{{address.country}}</td>
+    <td class="vert-aligned">
+        <button (click)="edit()" type="button" class="btn btn-default mr-2" aria-label="Edit">
+            <fa name="pencil"></fa>
+        </button>
+        <button type="button" class="btn btn-default" aria-label="Delete">
+            <fa name="trash-o"></fa>
+        </button>
+    </td>
+</ng-container>
+<ng-template #editingTemplate>
+    <td class="vert-aligned">
+        <input class="form-control" spellcheck="false" [(ngModel)]="address.street" />
+    </td>
+    <td class="vert-aligned">
+        <input class="form-control" spellcheck="false" [(ngModel)]="address.ward" />
+    </td>
+    <td class="vert-aligned"><input class="form-control" spellcheck="false" [(ngModel)]="address.district" />
+    </td>
+    <td class="vert-aligned"><input class="form-control" spellcheck="false" [(ngModel)]="address.city" />
+    </td>
+    <td class="vert-aligned"><input class="form-control" spellcheck="false" [(ngModel)]="address.country" />
+    </td>
+    <td class="vert-aligned">
+        <button (click)="save()" type="button" class="btn btn-default mr-2" aria-label="Edit">
+            <fa name="save"></fa>
+        </button>
+        <button type="button" class="btn btn-default" aria-label="Delete">
+            <fa name="trash-o"></fa>
+        </button>
+    </td>
+</ng-template>
+<div [ngClass]="{'d-none': !editing}">
+    <app-map [address]="address"></app-map>
+</div>

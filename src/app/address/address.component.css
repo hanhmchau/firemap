@@ -1,1 +1,23 @@
-:host { display: table-row; }
+:host {
+    display: table-row;
+    position: relative;
+}
+
+.vert-aligned {
+    vertical-align: middle;
+}
+
+agm-map {
+    height: 400px;
+    top: 64px;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+.autosuggest {
+    top: 64px;
+    left: 0;
+    width: 50%;
+    z-index: 2;
+}

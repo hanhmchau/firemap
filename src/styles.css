@@ -92,3 +92,8 @@ body {
     padding-left: 0;
     padding-right: 0;
 }
+
+
+body {
+    background-color: #fdfcfc !important;
+}
