@@ -1,18 +1,12 @@
-import { Component, ViewChild, ElementRef, Input, Renderer } from '@angular/core';
-import { MouseEvent, MapsAPILoader, AgmMap, LatLngLiteral } from '@agm/core';
+import { AgmMap, LatLngLiteral, MapsAPILoader, MouseEvent } from '@agm/core';
+import { Component, ElementRef, Input, Renderer, ViewChild } from '@angular/core';
+import { ClientResponse, createClient, GeocodingResponse, GeocodingResult, GoogleMapsClient } from '@google/maps';
 import { Observable, Observer } from 'rxjs';
 import '../../../node_modules/google-maps-api-typings/index.d';
+import Address from '../models/address';
 import Map from '../models/map';
 import Marker from '../models/marker';
-import {
-    GoogleMapsClient,
-    createClient,
-    ClientResponse,
-    GeocodingResponse,
-    GeocodingResult
-} from '@google/maps';
 import { MapService } from '../services/map.service';
-import Address from '../models/address';
 
 @Component({
     selector: 'app-map',
@@ -20,9 +14,8 @@ import Address from '../models/address';
     styleUrls: ['./map.component.css']
 })
 export class MapComponent {
-    @Input()
-    address: Address;
-    marker: Marker;
+    @Input() address: Address;
+    marker: Marker
     map: Map;
     @ViewChild('addressBox')
     public addressBoxRef: ElementRef;
@@ -33,9 +26,7 @@ export class MapComponent {
     @Input() width: string;
 
     constructor(
-        private renderer: Renderer,
         private mapsAPILoader: MapsAPILoader,
-        private mapService: MapService
     ) {
     }
 
@@ -73,18 +64,6 @@ export class MapComponent {
     ngOnInit(): void {
         this.initializeMap();
         this.initializeAutocomplete();
-
-        this.mapService.getActiveMarker().subscribe(marker => {
-            this.marker.lat = marker.lat;
-            this.marker.lng = marker.lng;
-            if (marker.draggable !== undefined) {
-                this.marker.draggable = marker.draggable;
-            }
-        });
-
-        this.mapService.getActiveMap().subscribe((map: Map) => {
-            this.updateMap(map.lat, map.lng, 17);
-        });
     }
 
     initAutocomplete(bounds: google.maps.Circle) {
@@ -106,10 +85,9 @@ export class MapComponent {
         if (place.geometry) {
             const lat = place.geometry.location.lat();
             const lng = place.geometry.location.lng();
-            this.marker.lat = lat;
-            this.marker.lng = lng;
+            this.updateMarker(lat, lng);
             this.updateMap(lat, lng, 17);
-            this.mapService.setActiveMarker(this.marker);
+            // this.mapService.setActiveMarker(this.marker);
         }
     }
 
@@ -124,8 +102,9 @@ export class MapComponent {
                 }
             },
             (err: any, response: ClientResponse<GeocodingResponse>) => {
-                response.json.results.forEach((res: GeocodingResult) => {
-                });
+                if (!err && response.json.results.length) {
+                    const res: GeocodingResult = response.json.results[0];
+                }
             }
         );
     }
