@@ -125,7 +125,6 @@ export class MapComponent {
             },
             (err: any, response: ClientResponse<GeocodingResponse>) => {
                 response.json.results.forEach((res: GeocodingResult) => {
-                    console.log(res.address_components);
                 });
             }
         );

@@ -8,6 +8,5 @@ import Address from './models/address';
 })
 export class AppComponent {
     onFocusMap(address: Address) {
-        console.log(address);
     }
 }

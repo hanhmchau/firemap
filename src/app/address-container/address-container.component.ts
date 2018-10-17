@@ -1,7 +1,6 @@
 import { MapService } from './../services/map.service';
 import { Component, Output, EventEmitter } from '@angular/core';
 import Address from '../models/address';
-import { ThrowStmt } from '@angular/compiler';
 
 @Component({
     selector: 'app-address-container',
@@ -11,6 +10,7 @@ import { ThrowStmt } from '@angular/compiler';
 export class AddressContainerComponent {
     @Output() onFocusMap: EventEmitter<Address> = new EventEmitter();
     private addresses: Address[];
+    private activeAddress: Address;
 
     constructor(private mapService: MapService) {
     }
@@ -21,5 +21,13 @@ export class AddressContainerComponent {
 
     focusMap(address: Address) {
         this.mapService.setActiveAddress(address);
+    }
+
+    onEdit(address: Address) {
+        this.activeAddress = address;
+    }
+
+    onStopEdit() {
+        this.activeAddress = undefined;
     }
 }
