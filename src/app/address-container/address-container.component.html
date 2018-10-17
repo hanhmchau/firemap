@@ -1,5 +1,5 @@
 <div class="table-container">
-    <button class="btn btn-default pull-right"><fa name="plus"></fa>Add</button>
+    <button class="btn btn-default"><fa name="plus" class="mr-1"></fa>Add</button>
     <table class="table table-striped table-hover">
         <thead>
             <tr>
@@ -8,30 +8,12 @@
                 <th scope="col">District</th>
                 <th scope="col">City</th>
                 <th scope="col">Country</th>
+                <th></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>Mark</td>
-                <td>Otto</td>
-                <td>@mdo</td>
-                <td>@mdo</td>
-                <td>@mdo</td>
-            </tr>
-            <tr>
-                <td>Jacob</td>
-                <td>Thornton</td>
-                <td>@fat</td>
-                <td>@fat</td>
-                <td>@fat</td>
-            </tr>
-            <tr>
-                <td>Larry</td>
-                <td>the Bird</td>
-                <td>@twitter</td>
-                <td>@twitter</td>
-                <td>@twitter</td>
-            </tr>
+            <app-address [address]="address" *ngFor="let address of addresses"></app-address>
         </tbody>
     </table>
 </div>

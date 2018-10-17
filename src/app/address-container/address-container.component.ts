@@ -8,6 +8,10 @@ import Address from '../models/address';
 })
 export class AddressContainerComponent {
     private addresses: Address[] = [{
-        street: 'Hu'
+        street: 'Hu',
+        ward: 'Ben Thanh',
+        district: 'Go Vap',
+        city: 'Ha Noi',
+        country: 'Viet Nam'
     }];
 }
