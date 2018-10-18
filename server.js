@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const path = require("path");
 const port = process.env.PORT || 8080;
@@ -15,5 +16,7 @@ app.get("*", function(req, res) {
         if (err) console.log(err);
     });
 });
+
+console.log(process.env.MAP_API);
 
 app.listen(port);
