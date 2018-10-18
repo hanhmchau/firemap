@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "dev": "nodemon --watch /config/*/** --exec \"webpack-dev-server --mode development --watch\"",
-        "start": "nodemon",
+        "start": "node server.js",
         "build": "webpack --env production",
         "copy": "robocopy dist ..\\server\\dist > output.log",
         "delete": "del -r /F /Q ..\\server\\dist 2>output.log",
