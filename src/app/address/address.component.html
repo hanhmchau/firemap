@@ -15,16 +15,16 @@
 </ng-container>
 <ng-template #editingTemplate>
     <td class="vert-aligned">
-        <input class="form-control" spellcheck="false" [(ngModel)]="address.street" />
+        <input class="form-control" (blur)="refreshMap()" spellcheck="false" [(ngModel)]="address.street" />
     </td>
     <td class="vert-aligned">
-        <input class="form-control" spellcheck="false" [(ngModel)]="address.ward" />
+        <input class="form-control" (blur)="refreshMap()" spellcheck="false" [(ngModel)]="address.ward" />
     </td>
-    <td class="vert-aligned"><input class="form-control" spellcheck="false" [(ngModel)]="address.district" />
+    <td class="vert-aligned"><input (blur)="refreshMap()" class="form-control" spellcheck="false" [(ngModel)]="address.district" />
     </td>
-    <td class="vert-aligned"><input class="form-control" spellcheck="false" [(ngModel)]="address.city" />
+    <td class="vert-aligned"><input (blur)="refreshMap()" class="form-control" spellcheck="false" [(ngModel)]="address.city" />
     </td>
-    <td class="vert-aligned"><input class="form-control" spellcheck="false" [(ngModel)]="address.country" />
+    <td class="vert-aligned"><input (blur)="refreshMap()" class="form-control" spellcheck="false" [(ngModel)]="address.country" />
     </td>
     <td class="vert-aligned">
         <button (click)="save()" type="button" class="btn btn-default mr-2" aria-label="Edit">

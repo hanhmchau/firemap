@@ -1,3 +1,4 @@
+import { LatLngLiteral } from '@agm/core';
 import { MapService } from './../services/map.service';
 import { Component, Input, EventEmitter, Output } from '@angular/core';
 import Address from '../models/address';
@@ -19,6 +20,10 @@ export class AddressComponent {
     @Output()
     onStopEdit: EventEmitter<Address> = new EventEmitter<Address>();
     private width: number;
+
+    constructor(private mapService: MapService) {
+
+    }
 
     edit() {
         this.onEdit.emit(this.address);
@@ -59,5 +64,15 @@ export class AddressComponent {
 
     onAddressUpdated(address: Address) {
         this.address = { ...this.address, ...address };
+    }
+
+    refreshMap() {
+        const { street, ward, city, country, district } = { ...this.address };
+        const addr = [street, ward, district, city, country]
+            .filter((x: string) => !!x)
+            .join(', ');
+        this.mapService.geocode(addr).subscribe((latlng: LatLngLiteral) => {
+            console.log(latlng);
+        });
     }
 }

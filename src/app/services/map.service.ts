@@ -6,9 +6,10 @@ import {
     createClient,
     GeocodingResponse,
     GeocodingResult,
-    GoogleMapsClient
+    GoogleMapsClient,
+    LatLngLiteral
 } from '@google/maps';
-import { Observable, of, Subject } from 'rxjs';
+import { Observable, of, Subject, Observer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import consts from '../../consts';
 import Address from '../models/address';
@@ -52,18 +53,31 @@ export class MapService {
         });
     }
 
+    geocode(address: string): Observable<LatLngLiteral> {
+        const key = consts.MAP_API;
+        const params = new HttpParams().set('key', key).set('address', address);
+        const headers = new HttpHeaders();
+        return this.http
+            .get('https://maps.googleapis.com/maps/api/geocode/json', {
+                params,
+                headers
+            })
+            .pipe(
+                switchMap((value: any) => {
+                    const results = value.results as GeocodingResult[];
+                    const firstResult = results[0];
+                    const latLng = firstResult.geometry.location;
+                    return of(latLng);
+                })
+            );
+    }
+
     reverseGeocode(lat: number, lng: number): Observable<Address> {
         const key = consts.MAP_API;
         const params = new HttpParams()
             .set('key', key)
             .set('latlng', `${lat},${lng}`);
         const headers = new HttpHeaders();
-        // .set('Access-Control-Allow-Origin', '*')
-        // .set(
-        //     'Access-Control-Allow-Origin',
-        //     `X-Requested-With, content-type, access-control-allow-origin,
-        //     access-control-allow-methods, access-control-allow-headers`
-        // );
         return this.http
             .get('https://maps.googleapis.com/maps/api/geocode/json', {
                 params,
@@ -190,7 +204,7 @@ export class MapService {
         return (comp: AddressComponent) => {
             let hasProp = false;
             properties.forEach((prop: any) => {
-                comp.types.forEach((type) => {
+                comp.types.forEach(type => {
                     if (type === prop) {
                         hasProp = true;
                     }
