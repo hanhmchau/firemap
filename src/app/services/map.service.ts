@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, of, Subject } from 'rxjs';
 import consts from '../../consts';
@@ -9,8 +9,12 @@ import {
     GoogleMapsClient,
     createClient,
     ClientResponse,
-    GeocodingResponse
+    GeocodingResponse,
+    GeocodingResult,
+    AddressComponent,
+    GeocodingAddressComponentType
 } from '@google/maps';
+import { switchMap } from 'rxjs/operators';
 
 @Injectable({
     providedIn: 'root'
@@ -19,6 +23,7 @@ export class MapService {
     private categoryUrl = `${consts.API}/category`; // URL to web api
     private addresses: Address[] = [
         {
+            id: '1',
             street: 'Hu',
             ward: 'Ben Thanh',
             district: 'Go Vap',
@@ -28,6 +33,7 @@ export class MapService {
             lng: 10
         },
         {
+            id: '2',
             street: 'Hu',
             ward: 'Ben Thanh',
             district: 'Go Vap',
@@ -45,6 +51,67 @@ export class MapService {
         this.client = createClient({
             key: process.env.MAP_API
         });
+    }
+
+    reverseGeocode(lat: number, lng: number): Observable<Address> {
+        const key = process.env.MAP_API;
+        const params = new HttpParams()
+            .set('key', key)
+            .set('latlng', `${lat},${lng}`);
+        const headers = new HttpHeaders()
+            // .set('Access-Control-Allow-Origin', '*')
+            // .set(
+            //     'Access-Control-Allow-Origin',
+            //     `X-Requested-With, content-type, access-control-allow-origin, 
+            //     access-control-allow-methods, access-control-allow-headers`
+            // );
+        return this.http
+            .get('https://maps.googleapis.com/maps/api/geocode/json', {
+                params,
+                headers
+            })
+            .pipe(
+                switchMap((value: any) => {
+                    const results = value.results as GeocodingResult[];
+                    const firstResult = results[0];
+                    const addressComponents = firstResult.address_components;
+                    const streetNumber = this.parseAddressComponent(
+                        addressComponents,
+                        'street_number'
+                    );
+                    const streetName = this.parseAddressComponent(
+                        addressComponents,
+                        'route'
+                    );
+                    const ward = this.parseAddressComponent(
+                        addressComponents,
+                        'administrative_area_level_3'
+                    );
+                    const district = this.parseAddressComponent(
+                        addressComponents,
+                        'administrative_area_level_2'
+                    );
+                    const city = this.parseAddressComponent(
+                        addressComponents,
+                        'administrative_area_level_1'
+                    );
+                    const country = this.parseAddressComponent(
+                        addressComponents,
+                        'country'
+                    );
+                    const street = `${streetNumber} ${streetName}`.trim();
+                    const address = {
+                        street,
+                        ward,
+                        district,
+                        city,
+                        country,
+                        lat,
+                        lng
+                    };
+                    return of(address);
+                })
+            );
     }
 
     getAddresses(): Observable<Address[]> {
@@ -96,5 +163,18 @@ export class MapService {
                 });
             }
         );
+    }
+
+    private parseAddressComponent(
+        components: AddressComponent[],
+        property: string
+    ): string {
+        return components
+            .filter(this.getFilter(property))
+            .map((x: AddressComponent) => x.long_name)[0] || '';
+    }
+
+    private getFilter(property: any) {
+        return (comp: any) => comp.types.indexOf(property) >= 0;
     }
 }

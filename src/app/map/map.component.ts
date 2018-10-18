@@ -1,6 +1,6 @@
 import { AgmMap, LatLngLiteral, MapsAPILoader, MouseEvent } from '@agm/core';
-import { Component, ElementRef, Input, Renderer, ViewChild } from '@angular/core';
-import { ClientResponse, createClient, GeocodingResponse, GeocodingResult, GoogleMapsClient } from '@google/maps';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { createClient, GoogleMapsClient } from '@google/maps';
 import { Observable, Observer } from 'rxjs';
 import '../../../node_modules/google-maps-api-typings/index.d';
 import Address from '../models/address';
@@ -14,8 +14,9 @@ import { MapService } from '../services/map.service';
     styleUrls: ['./map.component.css']
 })
 export class MapComponent {
-    @Input() address: Address;
-    marker: Marker
+    @Input()
+    address: Address;
+    marker: Marker;
     map: Map;
     @ViewChild('addressBox')
     public addressBoxRef: ElementRef;
@@ -23,12 +24,11 @@ export class MapComponent {
     public agmMapRef: AgmMap;
     client: GoogleMapsClient;
     autocomplete: google.maps.places.Autocomplete;
-    @Input() width: string;
+    @Input()
+    width: string;
+    @Output() onAddressUpdated: EventEmitter<Address> = new EventEmitter();
 
-    constructor(
-        private mapsAPILoader: MapsAPILoader,
-    ) {
-    }
+    constructor(private mapsAPILoader: MapsAPILoader, private mapService: MapService) {}
 
     initializeMap() {
         this.marker = {
@@ -46,18 +46,16 @@ export class MapComponent {
     initializeAutocomplete() {
         this.client = createClient({ key: process.env.MAP_API });
         this.mapsAPILoader.load().then(() => {
-            this.getCurrentPosition().subscribe(
-                (latLng: LatLngLiteral) => {
-                    this.updateMarker(latLng.lat, latLng.lng);
-                    this.updateMap(latLng.lat, latLng.lng, 12);
-                    const bounds = new google.maps.Circle({
-                        center: latLng,
-                        radius: 25
-                    });
+            this.getCurrentPosition().subscribe((latLng: LatLngLiteral) => {
+                this.updateMarker(latLng.lat, latLng.lng);
+                this.updateMap(latLng.lat, latLng.lng, 12);
+                const bounds = new google.maps.Circle({
+                    center: latLng,
+                    radius: 25
+                });
 
-                    this.initAutocomplete(bounds);
-                }
-            );
+                this.initAutocomplete(bounds);
+            });
         });
     }
 
@@ -87,6 +85,9 @@ export class MapComponent {
             const lng = place.geometry.location.lng();
             this.updateMarker(lat, lng);
             this.updateMap(lat, lng, 17);
+            this.mapService.reverseGeocode(lat, lng).subscribe((address: Address) => {
+                this.onAddressUpdated.emit(address);
+            });
             // this.mapService.setActiveMarker(this.marker);
         }
     }
@@ -94,19 +95,6 @@ export class MapComponent {
     updateMarker(lat: number, lng: number) {
         this.marker.lat = lat;
         this.marker.lng = lng;
-        this.client.reverseGeocode(
-            {
-                latlng: {
-                    lat,
-                    lng
-                }
-            },
-            (err: any, response: ClientResponse<GeocodingResponse>) => {
-                if (!err && response.json.results.length) {
-                    const res: GeocodingResult = response.json.results[0];
-                }
-            }
-        );
     }
     updateMap(lat: number, lng: number, zoom?: number) {
         this.map.lat = lat;
@@ -122,6 +110,9 @@ export class MapComponent {
     updateMarkerPosition($event: MouseEvent) {
         const { lat, lng } = { ...$event.coords };
         this.updateMarker(lat, lng);
+        this.mapService.reverseGeocode(lat, lng).subscribe((address: Address) => {
+            this.onAddressUpdated.emit(address);
+        });
     }
     mapClicked($event: MouseEvent) {
         this.updateMarkerPosition($event);

@@ -6,7 +6,8 @@
         "removeComments": true,
         "experimentalDecorators": true,
         "allowJs": true,
-        "emitDecoratorMetadata": true
+        "emitDecoratorMetadata": true,
+        "target": "es6"
     },
     "awesomeTypescriptLoaderOptions": {
         "useCache": true,

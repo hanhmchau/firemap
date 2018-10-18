@@ -14,7 +14,7 @@
             </tr>
         </thead>
         <tbody>
-            <app-address [editing]="address === activeAddress" (click)="focusMap(address)" [address]="address" (onEdit)="onEdit($event)"
+            <app-address [editing]="activeAddress && address.id === activeAddress.id" (click)="focusMap(address)" [address]="address" (onEdit)="onEdit($event)"
                 (onStopEdit)="onStopEdit($event)" *ngFor="let address of addresses"></app-address>
         </tbody>
     </table>
