@@ -21,7 +21,6 @@ export class AddressComponent {
     private width: number;
 
     edit() {
-        console.log('edit');
         this.onEdit.emit(this.address);
         this.updateMapWidth();
     }

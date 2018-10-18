@@ -74,21 +74,27 @@ export class MapService {
                     const results = value.results as GeocodingResult[];
                     const firstResult = results[0];
                     const addressComponents = firstResult.address_components;
+                    console.log(firstResult);
                     const streetNumber = this.parseAddressComponent(
                         addressComponents,
-                        'street_number'
+                        'street_number',
+                        'premise'
                     );
                     const streetName = this.parseAddressComponent(
                         addressComponents,
-                        'route'
+                        'route',
+                        'sublocality_level_3'
                     );
                     const ward = this.parseAddressComponent(
                         addressComponents,
-                        'administrative_area_level_3'
+                        'administrative_area_level_3',
+                        'sublocality_level_3',
+                        'sublocality_level_2'
                     );
                     const district = this.parseAddressComponent(
                         addressComponents,
-                        'administrative_area_level_2'
+                        'administrative_area_level_2',
+                        'locality'
                     );
                     const city = this.parseAddressComponent(
                         addressComponents,
@@ -171,16 +177,26 @@ export class MapService {
 
     private parseAddressComponent(
         components: AddressComponent[],
-        property: string
+        ...properties: string[]
     ): string {
         return (
             components
-                .filter(this.getFilter(property))
+                .filter(this.getFilter(properties))
                 .map((x: AddressComponent) => x.long_name)[0] || ''
         );
     }
 
-    private getFilter(property: any) {
-        return (comp: any) => comp.types.indexOf(property) >= 0;
+    private getFilter(properties: any[]) {
+        return (comp: AddressComponent) => {
+            let hasProp = false;
+            properties.forEach((prop: any) => {
+                comp.types.forEach((type) => {
+                    if (type === prop) {
+                        hasProp = true;
+                    }
+                });
+            });
+            return hasProp;
+        };
     }
 }
