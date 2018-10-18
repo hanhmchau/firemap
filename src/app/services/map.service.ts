@@ -1,6 +1,13 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { AddressComponent, ClientResponse, createClient, GeocodingResponse, GeocodingResult, GoogleMapsClient } from '@google/maps';
+import {
+    AddressComponent,
+    ClientResponse,
+    createClient,
+    GeocodingResponse,
+    GeocodingResult,
+    GoogleMapsClient
+} from '@google/maps';
 import { Observable, of, Subject } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import consts from '../../consts';
@@ -50,13 +57,13 @@ export class MapService {
         const params = new HttpParams()
             .set('key', key)
             .set('latlng', `${lat},${lng}`);
-        const headers = new HttpHeaders()
-            // .set('Access-Control-Allow-Origin', '*')
-            // .set(
-            //     'Access-Control-Allow-Origin',
-            //     `X-Requested-With, content-type, access-control-allow-origin, 
-            //     access-control-allow-methods, access-control-allow-headers`
-            // );
+        const headers = new HttpHeaders();
+        // .set('Access-Control-Allow-Origin', '*')
+        // .set(
+        //     'Access-Control-Allow-Origin',
+        //     `X-Requested-With, content-type, access-control-allow-origin,
+        //     access-control-allow-methods, access-control-allow-headers`
+        // );
         return this.http
             .get('https://maps.googleapis.com/maps/api/geocode/json', {
                 params,
@@ -166,9 +173,11 @@ export class MapService {
         components: AddressComponent[],
         property: string
     ): string {
-        return components
-            .filter(this.getFilter(property))
-            .map((x: AddressComponent) => x.long_name)[0] || '';
+        return (
+            components
+                .filter(this.getFilter(property))
+                .map((x: AddressComponent) => x.long_name)[0] || ''
+        );
     }
 
     private getFilter(property: any) {
