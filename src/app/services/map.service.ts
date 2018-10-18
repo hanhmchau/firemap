@@ -19,7 +19,7 @@ import Marker from '../models/marker';
     providedIn: 'root'
 })
 export class MapService {
-    private categoryUrl = `${consts.API}/category`; // URL to web api
+    private categoryUrl = `${0}/category`; // URL to web api
     private addresses: Address[] = [
         {
             id: '1',
@@ -48,12 +48,12 @@ export class MapService {
 
     constructor(private http: HttpClient) {
         this.client = createClient({
-            key: process.env.MAP_API
+            key: consts.MAP_API
         });
     }
 
     reverseGeocode(lat: number, lng: number): Observable<Address> {
-        const key = process.env.MAP_API;
+        const key = consts.MAP_API;
         const params = new HttpParams()
             .set('key', key)
             .set('latlng', `${lat},${lng}`);

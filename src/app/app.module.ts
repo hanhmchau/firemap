@@ -14,6 +14,7 @@ import { AppComponent } from './app.component';
 import { RoutingService } from './routing.service';
 import { HeaderComponent } from './header/header.component';
 import { AngularFontAwesomeModule } from 'angular-font-awesome';
+import consts from '../consts';
 
 @NgModule({
     declarations: [
@@ -32,7 +33,7 @@ import { AngularFontAwesomeModule } from 'angular-font-awesome';
         BrowserAnimationsModule,
         AngularFontAwesomeModule,
         AgmCoreModule.forRoot({
-            apiKey: process.env.MAP_API,
+            apiKey: consts.MAP_API,
             libraries: ['places']
         }),
         NgbModule.forRoot()

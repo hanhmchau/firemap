@@ -1,10 +1,5 @@
 const consts = {
-    API: '/api', // will be changed if running in development
-    roles: {
-        READER: 0,
-        JOURNALIST: 1
-    },
-    UPLOAD_PRESET: 'kauzccgl'
+    MAP_API: 'AIzaSyCDXBrp0WaDo4gmD2YhvILvgAq4cmLnAv4'
 };
 
 export default consts;

@@ -7,6 +7,7 @@ import Address from '../models/address';
 import Map from '../models/map';
 import Marker from '../models/marker';
 import { MapService } from '../services/map.service';
+import consts from '../../consts';
 
 @Component({
     selector: 'app-map',
@@ -44,7 +45,7 @@ export class MapComponent {
     }
 
     initializeAutocomplete() {
-        this.client = createClient({ key: process.env.MAP_API });
+        this.client = createClient({ key: consts.MAP_API });
         this.mapsAPILoader.load().then(() => {
             this.getCurrentPosition().subscribe((latLng: LatLngLiteral) => {
                 this.updateMarker(latLng.lat, latLng.lng);
