@@ -1,20 +1,12 @@
-import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { AddressComponent, ClientResponse, createClient, GeocodingResponse, GeocodingResult, GoogleMapsClient } from '@google/maps';
 import { Observable, of, Subject } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import consts from '../../consts';
 import Address from '../models/address';
-import Marker from '../models/marker';
 import Map from '../models/map';
-import {
-    GoogleMapsClient,
-    createClient,
-    ClientResponse,
-    GeocodingResponse,
-    GeocodingResult,
-    AddressComponent,
-    GeocodingAddressComponentType
-} from '@google/maps';
-import { switchMap } from 'rxjs/operators';
+import Marker from '../models/marker';
 
 @Injectable({
     providedIn: 'root'
@@ -34,7 +26,7 @@ export class MapService {
         },
         {
             id: '2',
-            street: 'Hu',
+            street: 'Hi Hi',
             ward: 'Ben Thanh',
             district: 'Go Vap',
             city: 'Ha Noi',
@@ -163,6 +155,11 @@ export class MapService {
                 });
             }
         );
+    }
+
+    delete(id: string): Observable<any> {
+        return of(0);
+        // return this.http.get('delete url');
     }
 
     private parseAddressComponent(

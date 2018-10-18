@@ -108,7 +108,7 @@ export class MapComponent {
         });
     }
     updateMarkerPosition($event: MouseEvent) {
-        const { lat, lng } = { ...$event.coords };
+        const { lat = 10, lng = 105} = { ...$event.coords };
         this.updateMarker(lat, lng);
         this.mapService.reverseGeocode(lat, lng).subscribe((address: Address) => {
             this.onAddressUpdated.emit(address);

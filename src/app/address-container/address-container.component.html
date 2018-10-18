@@ -2,20 +2,29 @@
     <button class="btn btn-default mb-3">
         <fa name="plus" class="mr-1"></fa>Add
     </button>
-    <table class="table table-striped table-hover" id="table">
-        <thead>
-            <tr>
-                <th style="width: 17%" scope="col">Street</th>
-                <th style="width: 17%" scope="col">Ward</th>
-                <th style="width: 17%" scope="col">District</th>
-                <th style="width: 17%" scope="col">City</th>
-                <th style="width: 17%" scope="col">Country</th>
-                <th style="width: 15%" scope="col">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <app-address [editing]="activeAddress && address.id === activeAddress.id" (click)="focusMap(address)" [address]="address" (onEdit)="onEdit($event)"
-                (onStopEdit)="onStopEdit($event)" *ngFor="let address of addresses"></app-address>
-        </tbody>
-    </table>
+    <ng-container *ngIf="addresses.length; else noAddress">
+        <table class="table table-striped table-hover" id="table">
+            <thead>
+                <tr>
+                    <th style="width: 17%" scope="col">Street</th>
+                    <th style="width: 17%" scope="col">Ward</th>
+                    <th style="width: 17%" scope="col">District</th>
+                    <th style="width: 17%" scope="col">City</th>
+                    <th style="width: 17%" scope="col">Country</th>
+                    <th style="width: 15%" scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <app-address [editing]="activeAddress && address.id === activeAddress.id" (click)="focusMap(address)"
+                    [address]="address" (onEdit)="onEdit($event)" (onStopEdit)="onStopEdit($event)" (onDelete)="onDelete($event)"
+                    *ngFor="let address of addresses"></app-address>
+            </tbody>
+        </table>
+    </ng-container>
+    <ng-template #noAddress>
+        <div class="alert alert-primary" role="alert">
+            There is no address in the list yet.
+        </div>
+    </ng-template>
+
 </div>

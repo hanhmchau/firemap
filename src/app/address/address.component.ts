@@ -1,3 +1,4 @@
+import { MapService } from './../services/map.service';
 import { Component, Input, EventEmitter, Output } from '@angular/core';
 import Address from '../models/address';
 
@@ -11,6 +12,8 @@ export class AddressComponent {
     address: Address;
     @Input()
     editing: boolean;
+    @Output()
+    onDelete: EventEmitter<Address> = new EventEmitter<Address>();
     @Output()
     onEdit: EventEmitter<Address> = new EventEmitter<Address>();
     @Output()
@@ -49,6 +52,10 @@ export class AddressComponent {
     save() {
         this.editing = false;
         this.onStopEdit.emit(this.address);
+    }
+
+    delete() {
+        this.onDelete.emit(this.address);
     }
 
     onAddressUpdated(address: Address) {

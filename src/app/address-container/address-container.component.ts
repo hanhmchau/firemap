@@ -30,4 +30,11 @@ export class AddressContainerComponent {
     onStopEdit() {
         this.activeAddress = undefined;
     }
+
+    onDelete(address: Address) {
+        this.addresses = this.addresses.filter((addr: Address) => addr.id !== address.id);
+        if (address.id !== '-1') {
+            this.mapService.delete(address.id).subscribe();
+        }
+    }
 }
