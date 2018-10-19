@@ -36,5 +36,6 @@
     </td>
 </ng-template>
 <div [ngClass]="{'d-none': !editing}">
-    <app-map (onAddressUpdated)="onAddressUpdated($event)" [address]="address"></app-map>
+    <app-map (onAddressUpdated)="onAddressUpdated($event)" (onMapUpdated)="onMapUpdated($event)" (onMarkerUpdated)="onMarkerUpdated($event)"
+        [marker]="marker" [map$]="map$" [address]="address"></app-map>
 </div>

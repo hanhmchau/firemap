@@ -1,5 +1,5 @@
 <div class="table-container">
-    <button class="btn btn-default mb-3">
+    <button class="btn btn-default mb-3" (click)="add()">
         <fa name="plus" class="mr-1"></fa>Add
     </button>
     <ng-container *ngIf="addresses.length; else noAddress">

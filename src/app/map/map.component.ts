@@ -17,32 +17,24 @@ import consts from '../../consts';
 export class MapComponent {
     @Input()
     address: Address;
-    marker: Marker;
-    map: Map;
+    @Input() marker: Marker;
+    @Input() map$: Observable<Map>;
     @ViewChild('addressBox')
     public addressBoxRef: ElementRef;
-    @ViewChild(AgmMap)
-    public agmMapRef: AgmMap;
+    @ViewChild(AgmMap) public agmMapRef: AgmMap;
     client: GoogleMapsClient;
+    map: Map = {
+        lat: 0,
+        lng: 0,
+        zoom: 12
+    };
     autocomplete: google.maps.places.Autocomplete;
-    @Input()
-    width: string;
+    @Input() width: string;
     @Output() onAddressUpdated: EventEmitter<Address> = new EventEmitter();
+    @Output() onMarkerUpdated: EventEmitter<Marker> = new EventEmitter();
+    @Output() onMapUpdated: EventEmitter<Map> = new EventEmitter();
 
     constructor(private mapsAPILoader: MapsAPILoader, private mapService: MapService) {}
-
-    initializeMap() {
-        this.marker = {
-            lat: this.address.lat,
-            lng: this.address.lng,
-            draggable: true
-        };
-        this.map = {
-            lat: this.address.lat,
-            lng: this.address.lng,
-            zoom: 12
-        };
-    }
 
     initializeAutocomplete() {
         this.client = createClient({ key: consts.MAP_API });
@@ -61,8 +53,20 @@ export class MapComponent {
     }
 
     ngOnInit(): void {
-        this.initializeMap();
         this.initializeAutocomplete();
+        this.map$.subscribe((map: Map) => {
+            this.map.lat = map.lat;
+            this.map.lng = map.lng;
+            this.map.zoom = 14;
+            if (this.agmMapRef) {
+                this.agmMapRef.triggerResize(true).then(() => {
+                    (this.agmMapRef as any)._mapsWrapper.setCenter({
+                        lat: map.lat,
+                        lng: map.lng
+                    });
+                });
+            }
+        });
     }
 
     initAutocomplete(bounds: google.maps.Circle) {
@@ -89,18 +93,18 @@ export class MapComponent {
             this.mapService.reverseGeocode(lat, lng).subscribe((address: Address) => {
                 this.onAddressUpdated.emit(address);
             });
-            // this.mapService.setActiveMarker(this.marker);
         }
     }
 
     updateMarker(lat: number, lng: number) {
-        this.marker.lat = lat;
-        this.marker.lng = lng;
+        this.onMarkerUpdated.emit({
+            lat,
+            lng
+        });
     }
     updateMap(lat: number, lng: number, zoom?: number) {
-        this.map.lat = lat;
-        this.map.lng = lng;
-        this.map.zoom = zoom ? zoom : this.map.zoom;
+        const zoomAmount = zoom ? zoom : this.map.zoom;
+        this.onMapUpdated.emit({ lat, lng, zoom: zoomAmount });
         this.agmMapRef.triggerResize(true).then(() => {
             (this.agmMapRef as any)._mapsWrapper.setCenter({
                 lat,

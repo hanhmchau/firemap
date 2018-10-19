@@ -204,7 +204,7 @@ export class MapService {
         return (comp: AddressComponent) => {
             let hasProp = false;
             properties.forEach((prop: any) => {
-                comp.types.forEach(type => {
+                comp.types.forEach((type) => {
                     if (type === prop) {
                         hasProp = true;
                     }

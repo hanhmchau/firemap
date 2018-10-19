@@ -2,6 +2,10 @@ import { LatLngLiteral } from '@agm/core';
 import { MapService } from './../services/map.service';
 import { Component, Input, EventEmitter, Output } from '@angular/core';
 import Address from '../models/address';
+import Marker from '../models/marker';
+import Map from '../models/map';
+import { Subject, Observable, ReplaySubject, BehaviorSubject } from 'rxjs';
+import { updateMapWidth } from '../utils';
 
 @Component({
     selector: 'app-address',
@@ -20,37 +24,31 @@ export class AddressComponent {
     @Output()
     onStopEdit: EventEmitter<Address> = new EventEmitter<Address>();
     private width: number;
+    private marker: Marker;
+    private mapSubject: Subject<Map>;
+    private map$: Observable<Map>;
 
     constructor(private mapService: MapService) {
 
     }
 
-    edit() {
-        this.onEdit.emit(this.address);
-        this.updateMapWidth();
+    ngOnInit(): void {
+        this.marker = {
+            lat: this.address.lat,
+            lng: this.address.lng,
+            draggable: true
+        };
+        this.mapSubject = new BehaviorSubject<Map>({
+            lat: this.address.lat,
+            lng: this.address.lng,
+            zoom: 12
+        });
+        this.map$ = this.mapSubject.asObservable();
     }
 
-    updateMapWidth() {
-        this.width = document.getElementById('table').offsetWidth;
-        const agmMaps = document.getElementsByTagName('agm-map');
-        const rows = document.getElementsByTagName('app-address');
-        const inputs = document.getElementsByClassName('autosuggest');
-        for (
-            let index = 0;
-            index < document.getElementsByTagName('agm-map').length;
-            index++
-        ) {
-            const el = agmMaps.item(index) as HTMLElement;
-            const rowEl = rows.item(index) as HTMLElement;
-            const input = inputs.item(index) as HTMLElement;
-            el.style.width = `${this.width}px`;
-            input.style.width = `${this.width / 2}px`;
-            const bound = rowEl.getBoundingClientRect();
-            el.style.top = input.style.top = `${bound.top +
-                rowEl.offsetHeight +
-                1}px`;
-            el.style.left = input.style.left = `${bound.left}px`;
-        }
+    edit() {
+        this.onEdit.emit(this.address);
+        updateMapWidth();
     }
 
     save() {
@@ -66,13 +64,29 @@ export class AddressComponent {
         this.address = { ...this.address, ...address };
     }
 
+    onMapUpdated(map: Map) {
+        this.mapSubject.next(map);
+    }
+
+    onMarkerUpdated(marker: Marker) {
+        this.marker = marker;
+    }
+
     refreshMap() {
         const { street, ward, city, country, district } = { ...this.address };
         const addr = [street, ward, district, city, country]
             .filter((x: string) => !!x)
             .join(', ');
         this.mapService.geocode(addr).subscribe((latlng: LatLngLiteral) => {
-            console.log(latlng);
+            const { lat, lng } = { ...latlng };
+            this.marker = {
+                lat,
+                lng
+            };
+            this.mapSubject.next({
+                lat,
+                lng
+            });
         });
     }
 }

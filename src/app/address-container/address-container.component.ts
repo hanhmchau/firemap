@@ -1,6 +1,7 @@
 import { MapService } from './../services/map.service';
 import { Component, Output, EventEmitter } from '@angular/core';
 import Address from '../models/address';
+import { updateMapWidth } from '../utils';
 
 @Component({
     selector: 'app-address-container',
@@ -36,5 +37,22 @@ export class AddressContainerComponent {
         if (address.id !== '-1') {
             this.mapService.delete(address.id).subscribe();
         }
+    }
+
+    add() {
+        const newAddress: Address = {
+            id: '-1',
+            street: 'Unnamed Street',
+            lat: 105,
+            lng: 10
+        };
+        this.addresses = [
+            newAddress,
+            ...this.addresses
+        ];
+        this.activeAddress = newAddress;
+        setTimeout(() => {
+            updateMapWidth();
+        }, 0);
     }
 }
