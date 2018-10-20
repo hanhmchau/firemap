@@ -48,7 +48,9 @@ export class AddressComponent {
 
     edit() {
         this.onEdit.emit(this.address);
-        updateMapWidth();
+        setTimeout(() => {
+            updateMapWidth();
+        }, 0);
     }
 
     save() {

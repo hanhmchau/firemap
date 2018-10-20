@@ -15,6 +15,8 @@ import { RoutingService } from './routing.service';
 import { HeaderComponent } from './header/header.component';
 import { AngularFontAwesomeModule } from 'angular-font-awesome';
 import consts from '../consts';
+import { AngularFireModule } from '@angular/fire';
+import { AngularFirestoreModule } from '@angular/fire/firestore';
 
 @NgModule({
     declarations: [
@@ -36,7 +38,9 @@ import consts from '../consts';
             apiKey: consts.MAP_API,
             libraries: ['places']
         }),
-        NgbModule.forRoot()
+        NgbModule.forRoot(),
+        AngularFireModule.initializeApp(consts.FIREBASE),
+        AngularFirestoreModule.enablePersistence()
     ],
     exports: [],
     providers: [

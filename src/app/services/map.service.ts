@@ -10,11 +10,12 @@ import {
     LatLngLiteral
 } from '@google/maps';
 import { Observable, of, Subject, Observer } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { switchMap, map } from 'rxjs/operators';
 import consts from '../../consts';
 import Address from '../models/address';
 import Map from '../models/map';
 import Marker from '../models/marker';
+import { AngularFirestore, AngularFirestoreCollection, DocumentReference } from '@angular/fire/firestore';
 
 @Injectable({
     providedIn: 'root'
@@ -46,11 +47,13 @@ export class MapService {
     private activeMarker = new Subject<Marker>();
     private activeMap = new Subject<Map>();
     private client: GoogleMapsClient;
+    private addressCollectionRef: AngularFirestoreCollection<Address>;
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private fb: AngularFirestore) {
         this.client = createClient({
             key: consts.MAP_API
         });
+        this.addressCollectionRef = fb.collection('addresses');
     }
 
     geocode(address: string): Observable<LatLngLiteral> {
@@ -87,62 +90,27 @@ export class MapService {
                 switchMap((value: any) => {
                     const results = value.results as GeocodingResult[];
                     const firstResult = results[0];
-                    const addressComponents = firstResult.address_components;
-                    console.log(firstResult);
-                    const streetNumber = this.parseAddressComponent(
-                        addressComponents,
-                        'street_number',
-                        'premise'
-                    );
-                    const streetName = this.parseAddressComponent(
-                        addressComponents,
-                        'route',
-                        'sublocality_level_3'
-                    );
-                    const ward = this.parseAddressComponent(
-                        addressComponents,
-                        'administrative_area_level_3',
-                        'sublocality_level_3',
-                        'sublocality_level_2'
-                    );
-                    const district = this.parseAddressComponent(
-                        addressComponents,
-                        'administrative_area_level_2',
-                        'locality'
-                    );
-                    const city = this.parseAddressComponent(
-                        addressComponents,
-                        'administrative_area_level_1'
-                    );
-                    const country = this.parseAddressComponent(
-                        addressComponents,
-                        'country'
-                    );
-                    const street = `${streetNumber} ${streetName}`.trim();
-                    const address = {
-                        street,
-                        ward,
-                        district,
-                        city,
-                        country,
-                        lat,
-                        lng
-                    };
-                    return of(address);
+                    const parsedAddress = this.parseAddress(firstResult.address_components);
+                    parsedAddress.lat = lat;
+                    parsedAddress.lng = lng;
+                    return of(parsedAddress);
                 })
             );
     }
 
     getAddresses(): Observable<Address[]> {
-        return of(this.addresses);
-    }
-
-    getActiveMarker(): Observable<Marker> {
-        return this.activeMarker.asObservable();
-    }
-
-    getActiveMap(): Observable<Map> {
-        return this.activeMap.asObservable();
+        return this.addressCollectionRef.snapshotChanges().pipe(
+            map(actions => {
+                return actions.map(action =>{
+                    const data = action.payload.doc.data() as Address;
+                    const id = action.payload.doc.id;
+                    return {
+                        ...data,
+                        id
+                    };
+                })
+            })
+        )
     }
 
     setActiveMarker(marker: Marker): void {
@@ -184,17 +152,78 @@ export class MapService {
         );
     }
 
-    delete(id: string): Observable<any> {
-        return of(0);
-        // return this.http.get('delete url');
+    delete(id: string): void {
+        this.addressCollectionRef.doc(id).delete();
+    }
+
+    insert(address: Address): Observable<string> {
+        return Observable.create((observer: Observer<string>) => {
+            delete address.id;
+            this.addressCollectionRef.add(address)
+            .then((doc: DocumentReference) => {
+                observer.next(doc.id);
+            })
+            .catch(() => observer.error({}));
+        });
+    }
+
+    update(address: Address): Observable<any> {
+        return Observable.create((observer: Observer<any>) => {
+            const id = address.id;
+            delete address.id;
+            this.addressCollectionRef.doc(id).update(address)
+            .then(() => observer.next({}))
+            .catch(() => observer.error({}));
+        });
+    }
+
+    parseAddress(addressComponents: AddressComponent[] | google.maps.GeocoderAddressComponent[]) {
+        const streetNumber = this.parseAddressComponent(
+            addressComponents,
+            'street_number',
+            'premise'
+        );
+        const streetName = this.parseAddressComponent(
+            addressComponents,
+            'route',
+            'sublocality_level_3'
+        );
+        const ward = this.parseAddressComponent(
+            addressComponents,
+            'administrative_area_level_3',
+            'sublocality_level_3',
+            'sublocality_level_2'
+        );
+        const district = this.parseAddressComponent(
+            addressComponents,
+            'administrative_area_level_2',
+            'locality'
+        );
+        const city = this.parseAddressComponent(
+            addressComponents,
+            'administrative_area_level_1'
+        );
+        const country = this.parseAddressComponent(
+            addressComponents,
+            'country'
+        );
+        const street = `${streetNumber} ${streetName}`.trim();
+        const address: Address = {
+            street,
+            ward,
+            district,
+            city,
+            country
+        };
+        return address;
     }
 
     private parseAddressComponent(
-        components: AddressComponent[],
+        components: AddressComponent[] | google.maps.GeocoderAddressComponent[],
         ...properties: string[]
     ): string {
         return (
-            components
+            (components as any[])
                 .filter(this.getFilter(properties))
                 .map((x: AddressComponent) => x.long_name)[0] || ''
         );

@@ -86,13 +86,15 @@ export class MapComponent {
     placeChanged() {
         const place: google.maps.places.PlaceResult = this.autocomplete.getPlace();
         if (place.geometry) {
+            console.log(place);
             const lat = place.geometry.location.lat();
             const lng = place.geometry.location.lng();
             this.updateMarker(lat, lng);
             this.updateMap(lat, lng, 17);
-            this.mapService.reverseGeocode(lat, lng).subscribe((address: Address) => {
-                this.onAddressUpdated.emit(address);
-            });
+            const parsedAddress = this.mapService.parseAddress(place.address_components);
+            parsedAddress.lat = lat;
+            parsedAddress.lng = lng;
+            this.onAddressUpdated.emit(parsedAddress);
         }
     }
 
@@ -113,7 +115,7 @@ export class MapComponent {
         });
     }
     updateMarkerPosition($event: MouseEvent) {
-        const { lat = 10, lng = 105} = { ...$event.coords };
+        const { lat = 105, lng = 10} = { ...$event.coords };
         this.updateMarker(lat, lng);
         this.mapService.reverseGeocode(lat, lng).subscribe((address: Address) => {
             this.onAddressUpdated.emit(address);
