@@ -20,6 +20,7 @@ import { RoutingService } from './routing.service';
 import { MapService } from './services/map.service';
 import { SingleAddressComponent } from './single-address/single-address.component';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
+import { NotFoundComponent } from './not-found/not-found.component';
 
 @NgModule({
     declarations: [
@@ -29,7 +30,8 @@ import { InfiniteScrollModule } from 'ngx-infinite-scroll';
         AddressContainerComponent,
         MapComponent,
         AddressComponent,
-        SingleAddressComponent
+        SingleAddressComponent,
+        NotFoundComponent
     ],
     imports: [
         BrowserModule,

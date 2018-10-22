@@ -1,0 +1,18 @@
+agm-map {
+    height: 450px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+input {
+    top: 0;
+    left: 0;
+    width: 50%;
+    z-index: 2;
+}
+
+.agm-map-container-inner {
+    border-radius: 0 0 30px 30px;
+}
