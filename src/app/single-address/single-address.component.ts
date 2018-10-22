@@ -118,7 +118,7 @@ export class SingleAddressComponent {
             this.toastrSuccess();
             if (this.address.id === '-1') {
                 this.mapService.insert(this.address).subscribe(id => {
-                    this.router.navigate(['address', id]);
+                    this.router.navigate(['/']);
                 });
             } else {
                 this.mapService.update(this.address).subscribe();
