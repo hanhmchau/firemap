@@ -47,6 +47,7 @@ export class SingleAddressComponent {
                 if (address) {
                     this.address = address;
                     this.initialize();
+                    this.mapService.getNearby(this.address).subscribe();
                 } else {
                     this.router.navigate(['/not-found']);
                 }

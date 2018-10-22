@@ -86,7 +86,6 @@ export class MapComponent {
     placeChanged() {
         const place: google.maps.places.PlaceResult = this.autocomplete.getPlace();
         if (place.geometry) {
-            console.log(place);
             const lat = place.geometry.location.lat();
             const lng = place.geometry.location.lng();
             this.updateMarker(lat, lng);
@@ -118,7 +117,6 @@ export class MapComponent {
         const { lat = 105, lng = 10} = { ...$event.coords };
         this.updateMarker(lat, lng);
         this.mapService.reverseGeocode(lat, lng).subscribe((address: Address) => {
-            console.log(address);
             this.onAddressUpdated.emit(address);
         });
     }

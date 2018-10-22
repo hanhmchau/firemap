@@ -17,7 +17,7 @@ import {
     LatLngLiteral
 } from '@google/maps';
 import { Observable, Observer, of, Subject } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map, switchMap, tap } from 'rxjs/operators';
 import consts from '../../consts';
 import Address from '../models/address';
 import Map from '../models/map';
@@ -110,29 +110,17 @@ export class MapService {
             );
     }
 
-    // queryFnResponse(ref: CollectionReference): Query {
-    //     // let fn: Query = ref.orderBy('country');
-    //     return fn;
-    //     // if (this.lastQueriedId) {
-    //     //     fn = fn.startAfter(this.lastQueriedId);
-    //     // }
-    //     // return fn.limit(25);
-    // }
-
     getAddresses(): Observable<Address[]> {
-        // const queryFn = (ref: CollectionReference) => this.queryFnResponse(ref);
-        return this.fb
-            .collection('addresses')
-            .snapshotChanges()
-            .pipe(
-                map(actions => {
-                    return actions.map(action => {
-                        const data = action.payload.doc.data() as Address;
-                        const id = action.payload.doc.id;
-                        return { ...data, id };
-                    });
-                })
-            );
+        return this.addressCollectionRef.snapshotChanges().pipe(
+            map(actions => {
+                return actions.map(action => {
+                    const data = action.payload.doc.data() as Address;
+                    const id = action.payload.doc.id;
+                    return { ...data, id };
+                });
+            }),
+            tap((addresses: Address[]) => (this.addresses = addresses))
+        );
     }
 
     setActiveMarker(marker: Marker): void {
@@ -215,6 +203,59 @@ export class MapService {
                     };
                 })
             );
+    }
+
+    getNearby(address: Address): Observable<Address[]> {
+        return Observable.create((observer: Observer<Address[]>) => {
+            const center = {
+                lat: address.lat,
+                lng: address.lng
+            };
+            const latLngs = this.addresses
+                .filter(addr => addr.id !== address.id)
+                .map(addr => ({
+                    lat: addr.lat,
+                    lng: addr.lng
+                }))
+                .slice(0, 20);
+            try {
+                const service = new google.maps.DistanceMatrixService();
+                service.getDistanceMatrix(
+                    {
+                        origins: [center],
+                        destinations: latLngs,
+                        travelMode: google.maps.TravelMode.DRIVING
+                    }, this.callback
+                );
+                // this.getDistanceMatrix([center], latLngs).subscribe(r => console.log(r));
+            } catch (e) {
+                console.warn(e);
+            }
+        });
+    }
+
+    callback() {
+        console.log('nya');
+    }
+
+    getDistanceMatrix(
+        origins: LatLngLiteral[],
+        destinations: LatLngLiteral[]
+    ): Observable<any> {
+        const params = new HttpParams()
+            .set('origins', this.createLatLngParam(origins))
+            .set('destinations', this.createLatLngParam(destinations))
+            .set('key', consts.MAP_API)
+            .set('travelMode', 'DRIVING');
+        const headers = new HttpHeaders().set('dataType', 'jsonp');
+        return this.http.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
+            params,
+            headers
+        });
+    }
+
+    createLatLngParam(dests: LatLngLiteral[]) {
+        return dests.map(dest => `${dest.lat},${dest.lng}`).join('|');
     }
 
     getCountries(): Observable<any[]> {
