@@ -118,6 +118,7 @@ export class MapComponent {
         const { lat = 105, lng = 10} = { ...$event.coords };
         this.updateMarker(lat, lng);
         this.mapService.reverseGeocode(lat, lng).subscribe((address: Address) => {
+            console.log(address);
             this.onAddressUpdated.emit(address);
         });
     }

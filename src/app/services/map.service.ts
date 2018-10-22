@@ -1,7 +1,21 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { AngularFirestore, AngularFirestoreCollection, DocumentReference } from '@angular/fire/firestore';
-import { AddressComponent, ClientResponse, createClient, GeocodingResponse, GeocodingResult, GoogleMapsClient, LatLngLiteral } from '@google/maps';
+import {
+    AngularFirestore,
+    AngularFirestoreCollection,
+    DocumentReference,
+    CollectionReference,
+    Query
+} from '@angular/fire/firestore';
+import {
+    AddressComponent,
+    ClientResponse,
+    createClient,
+    GeocodingResponse,
+    GeocodingResult,
+    GoogleMapsClient,
+    LatLngLiteral
+} from '@google/maps';
 import { Observable, Observer, of, Subject } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import consts from '../../consts';
@@ -40,6 +54,7 @@ export class MapService {
     private activeMap = new Subject<Map>();
     private client: GoogleMapsClient;
     private addressCollectionRef: AngularFirestoreCollection<Address>;
+    private lastQueriedId: string = null;
 
     constructor(private http: HttpClient, private fb: AngularFirestore) {
         this.client = createClient({
@@ -85,7 +100,9 @@ export class MapService {
                 switchMap((value: any) => {
                     const results = value.results as GeocodingResult[];
                     const firstResult = results[0];
-                    const parsedAddress = this.parseAddress(firstResult.address_components);
+                    const parsedAddress = this.parseAddress(
+                        firstResult.address_components
+                    );
                     parsedAddress.lat = lat;
                     parsedAddress.lng = lng;
                     return of(parsedAddress);
@@ -93,19 +110,29 @@ export class MapService {
             );
     }
 
+    // queryFnResponse(ref: CollectionReference): Query {
+    //     // let fn: Query = ref.orderBy('country');
+    //     return fn;
+    //     // if (this.lastQueriedId) {
+    //     //     fn = fn.startAfter(this.lastQueriedId);
+    //     // }
+    //     // return fn.limit(25);
+    // }
+
     getAddresses(): Observable<Address[]> {
-        return this.addressCollectionRef.snapshotChanges().pipe(
-            map((actions) => {
-                return actions.map((action) => {
-                    const data = action.payload.doc.data() as Address;
-                    const id = action.payload.doc.id;
-                    return {
-                        ...data,
-                        id
-                    };
+        // const queryFn = (ref: CollectionReference) => this.queryFnResponse(ref);
+        return this.fb
+            .collection('addresses')
+            .snapshotChanges()
+            .pipe(
+                map(actions => {
+                    return actions.map(action => {
+                        const data = action.payload.doc.data() as Address;
+                        const id = action.payload.doc.id;
+                        return { ...data, id };
+                    });
                 })
-            })
-        )
+            );
     }
 
     setActiveMarker(marker: Marker): void {
@@ -154,11 +181,12 @@ export class MapService {
     insert(address: Address): Observable<string> {
         return Observable.create((observer: Observer<string>) => {
             delete address.id;
-            this.addressCollectionRef.add(address)
-            .then((doc: DocumentReference) => {
-                observer.next(doc.id);
-            })
-            .catch(() => observer.error({}));
+            this.addressCollectionRef
+                .add(address)
+                .then((doc: DocumentReference) => {
+                    observer.next(doc.id);
+                })
+                .catch(() => observer.error({}));
         });
     }
 
@@ -166,31 +194,45 @@ export class MapService {
         return Observable.create((observer: Observer<any>) => {
             const id = address.id;
             delete address.id;
-            this.addressCollectionRef.doc(id).update(address)
-            .then(() => observer.next({}))
-            .catch(() => observer.error({}));
+            this.addressCollectionRef
+                .doc(id)
+                .update(address)
+                .then(() => observer.next({}))
+                .catch(() => observer.error({}));
         });
     }
 
     getById(id: string): Observable<Address> {
-        return this.addressCollectionRef.doc(id).snapshotChanges().pipe(
-            map((action) => {
-                const data = action.payload.data() as Address;
-                return {
-                    ...data,
-                    id
-                };
-            })
-        );
+        return this.addressCollectionRef
+            .doc(id)
+            .snapshotChanges()
+            .pipe(
+                map(action => {
+                    const data = action.payload.data() as Address;
+                    return {
+                        ...data,
+                        id
+                    };
+                })
+            );
     }
 
-    getCountries(): Observable<string[]> {
+    getCountries(): Observable<any[]> {
         return this.http.get('https://restcountries.eu/rest/v2/all').pipe(
-            map((countries: any[]) => countries.map((c: any) => c.name))
+            map((countries: any[]) =>
+                countries.map((c: any) => ({
+                    name: c.name,
+                    code: c.alpha2Code
+                }))
+            )
         );
     }
 
-    parseAddress(addressComponents: AddressComponent[] | google.maps.GeocoderAddressComponent[]) {
+    parseAddress(
+        addressComponents:
+            | AddressComponent[]
+            | google.maps.GeocoderAddressComponent[]
+    ) {
         const streetNumber = this.parseAddressComponent(
             addressComponents,
             'street_number',
@@ -220,15 +262,31 @@ export class MapService {
             addressComponents,
             'country'
         );
+        const countryCode = this.parseAddressComponentShortName(
+            addressComponents,
+            'country'
+        );
         const street = `${streetNumber} ${streetName}`.trim();
         const address: Address = {
             street,
             ward,
             district,
             city,
-            country
+            country,
+            countryCode
         };
         return address;
+    }
+
+    private parseAddressComponentShortName(
+        components: AddressComponent[] | google.maps.GeocoderAddressComponent[],
+        ...properties: string[]
+    ): string {
+        return (
+            (components as any[])
+                .filter(this.getFilter(properties))
+                .map((x: AddressComponent) => x.short_name)[0] || ''
+        );
     }
 
     private parseAddressComponent(
@@ -246,7 +304,7 @@ export class MapService {
         return (comp: AddressComponent) => {
             let hasProp = false;
             properties.forEach((prop: any) => {
-                comp.types.forEach((type) => {
+                comp.types.forEach(type => {
                     if (type === prop) {
                         hasProp = true;
                     }

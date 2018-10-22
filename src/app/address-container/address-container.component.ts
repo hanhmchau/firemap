@@ -9,21 +9,33 @@ import { updateMapWidth } from '../utils';
     styleUrls: ['./address-container.component.css']
 })
 export class AddressContainerComponent {
-    @Output() onFocusMap: EventEmitter<Address> = new EventEmitter();
+    @Output()
+    onFocusMap: EventEmitter<Address> = new EventEmitter();
     private addresses: Address[] = [];
     private activeAddress: Address;
 
-    constructor(private mapService: MapService) {
-    }
+    constructor(private mapService: MapService) {}
 
     ngOnInit(): void {
-        this.mapService.getAddresses().subscribe((addresses: Address[]) => this.addresses = addresses || []);
+        this.queryData();
     }
 
     onDelete(address: Address) {
-        this.addresses = this.addresses.filter((addr: Address) => addr.id !== address.id);
+        this.addresses = this.addresses.filter(
+            (addr: Address) => addr.id !== address.id
+        );
         if (address.id !== '-1') {
             this.mapService.delete(address.id);
         }
+    }
+
+    queryData() {
+        this.mapService.getAddresses().subscribe((addresses: Address[]) => {
+            this.addresses = addresses;
+        });
+    }
+
+    onScroll() {
+        this.queryData();
     }
 }

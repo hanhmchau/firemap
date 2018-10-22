@@ -27,8 +27,8 @@
             </div>
             <div class="form-group col-md-6">
                 <label>Country</label>
-                <select class="form-control" id="countries" name="country" [(ngModel)]="address.country">
-                    <option *ngFor="let country of (countries$ | async)" [value]="country">{{country}}</option>
+                <select class="form-control" id="countries" name="country" [(ngModel)]="address.countryCode">
+                    <option *ngFor="let country of (countries$ | async)" [value]="country.code">{{country.name}}</option>
                 </select>
             </div>
         </div>

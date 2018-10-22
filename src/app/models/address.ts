@@ -8,4 +8,5 @@ export default class Address {
     lat?: number;
     lng?: number;
     label?: number;
+    countryCode?: string;
 }

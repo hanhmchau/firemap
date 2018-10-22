@@ -19,6 +19,7 @@ import { MapComponent } from './map/map.component';
 import { RoutingService } from './routing.service';
 import { MapService } from './services/map.service';
 import { SingleAddressComponent } from './single-address/single-address.component';
+import { InfiniteScrollModule } from 'ngx-infinite-scroll';
 
 @NgModule({
     declarations: [
@@ -47,7 +48,8 @@ import { SingleAddressComponent } from './single-address/single-address.componen
         ToastrModule.forRoot({
             preventDuplicates: true,
             positionClass: 'toast-bottom-right'
-        }) // ToastrModule added
+        }),
+        InfiniteScrollModule
     ],
     exports: [],
     providers: [
