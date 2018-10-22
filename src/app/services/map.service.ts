@@ -247,7 +247,8 @@ export class MapService {
             addressComponents,
             'administrative_area_level_3',
             'sublocality_level_3',
-            'sublocality_level_2'
+            'sublocality_level_2',
+            'sublocality_level_1'
         );
         const district = this.parseAddressComponent(
             addressComponents,
