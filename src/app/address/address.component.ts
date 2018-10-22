@@ -46,18 +46,6 @@ export class AddressComponent {
         this.map$ = this.mapSubject.asObservable();
     }
 
-    edit() {
-        this.onEdit.emit(this.address);
-        setTimeout(() => {
-            updateMapWidth();
-        }, 0);
-    }
-
-    save() {
-        this.editing = false;
-        this.onStopEdit.emit(this.address);
-    }
-
     delete() {
         this.onDelete.emit(this.address);
     }

@@ -1,13 +1,13 @@
 agm-map {
-    height: 400px;
-    top: 64px;
+    height: 450px;
+    top: 0;
     left: 0;
     width: 100%;
     z-index: 1;
 }
 
 input {
-    top: 64px;
+    top: 0;
     left: 0;
     width: 50%;
     z-index: 2;

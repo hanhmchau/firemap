@@ -78,6 +78,7 @@
         "install": "^0.12.2",
         "jdenticon": "^2.1.0",
         "ngx-infinite-scroll": "^6.0.1",
+        "ngx-toastr": "^9.1.1",
         "npm": "^6.4.1",
         "pretty-checkbox": "^3.0.3",
         "rxjs": "^6.3.2",

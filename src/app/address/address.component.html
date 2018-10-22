@@ -1,41 +1,17 @@
-<ng-container *ngIf="!editing; else editingTemplate">
+<ng-container>
     <td class="vert-aligned pl-2">{{address.street}}</td>
     <td class="vert-aligned pl-2">{{address.ward}}</td>
     <td class="vert-aligned pl-2">{{address.district}}</td>
     <td class="vert-aligned pl-2">{{address.city}}</td>
     <td class="vert-aligned pl-2">{{address.country}}</td>
     <td class="vert-aligned">
-        <button (click)="edit()" type="button" class="btn btn-default mr-2" aria-label="Edit">
-            <fa name="pencil"></fa>
-        </button>
+        <a [routerLink]="[ '/address', address.id ]">
+            <button type="button" class="btn btn-default mr-2" aria-label="Edit">
+                <fa name="pencil"></fa>
+            </button>
+        </a>
         <button (click)="delete()" type="button" class="btn btn-default" aria-label="Delete">
             <fa name="trash-o"></fa>
         </button>
     </td>
 </ng-container>
-<ng-template #editingTemplate>
-    <td class="vert-aligned">
-        <input class="form-control" (blur)="refreshMap()" spellcheck="false" [(ngModel)]="address.street" />
-    </td>
-    <td class="vert-aligned">
-        <input class="form-control" (blur)="refreshMap()" spellcheck="false" [(ngModel)]="address.ward" />
-    </td>
-    <td class="vert-aligned"><input (blur)="refreshMap()" class="form-control" spellcheck="false" [(ngModel)]="address.district" />
-    </td>
-    <td class="vert-aligned"><input (blur)="refreshMap()" class="form-control" spellcheck="false" [(ngModel)]="address.city" />
-    </td>
-    <td class="vert-aligned"><input (blur)="refreshMap()" class="form-control" spellcheck="false" [(ngModel)]="address.country" />
-    </td>
-    <td class="vert-aligned">
-        <button (click)="save()" type="button" class="btn btn-default mr-2" aria-label="Edit">
-            <fa name="save"></fa>
-        </button>
-        <button (click)="delete()" type="button" class="btn btn-default" aria-label="Delete">
-            <fa name="trash-o"></fa>
-        </button>
-    </td>
-</ng-template>
-<div [ngClass]="{'d-none': !editing}">
-    <app-map (onAddressUpdated)="onAddressUpdated($event)" (onMapUpdated)="onMapUpdated($event)" (onMarkerUpdated)="onMarkerUpdated($event)"
-        [marker]="marker" [map$]="map$" [address]="address"></app-map>
-</div>

@@ -1,21 +1,13 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import {
-    AddressComponent,
-    ClientResponse,
-    createClient,
-    GeocodingResponse,
-    GeocodingResult,
-    GoogleMapsClient,
-    LatLngLiteral
-} from '@google/maps';
-import { Observable, of, Subject, Observer } from 'rxjs';
-import { switchMap, map } from 'rxjs/operators';
+import { AngularFirestore, AngularFirestoreCollection, DocumentReference } from '@angular/fire/firestore';
+import { AddressComponent, ClientResponse, createClient, GeocodingResponse, GeocodingResult, GoogleMapsClient, LatLngLiteral } from '@google/maps';
+import { Observable, Observer, of, Subject } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import consts from '../../consts';
 import Address from '../models/address';
 import Map from '../models/map';
 import Marker from '../models/marker';
-import { AngularFirestore, AngularFirestoreCollection, DocumentReference } from '@angular/fire/firestore';
 
 @Injectable({
     providedIn: 'root'
@@ -56,7 +48,7 @@ export class MapService {
         this.addressCollectionRef = fb.collection('addresses');
     }
 
-    geocode(address: string): Observable<LatLngLiteral> {
+    geocode(address: string): Observable<LatLngLiteral | undefined> {
         const key = consts.MAP_API;
         const params = new HttpParams().set('key', key).set('address', address);
         const headers = new HttpHeaders();
@@ -69,8 +61,11 @@ export class MapService {
                 switchMap((value: any) => {
                     const results = value.results as GeocodingResult[];
                     const firstResult = results[0];
-                    const latLng = firstResult.geometry.location;
-                    return of(latLng);
+                    if (firstResult) {
+                        const latLng = firstResult.geometry.location;
+                        return of(latLng);
+                    }
+                    return of(undefined);
                 })
             );
     }
@@ -100,8 +95,8 @@ export class MapService {
 
     getAddresses(): Observable<Address[]> {
         return this.addressCollectionRef.snapshotChanges().pipe(
-            map(actions => {
-                return actions.map(action =>{
+            map((actions) => {
+                return actions.map((action) => {
                     const data = action.payload.doc.data() as Address;
                     const id = action.payload.doc.id;
                     return {
@@ -175,6 +170,24 @@ export class MapService {
             .then(() => observer.next({}))
             .catch(() => observer.error({}));
         });
+    }
+
+    getById(id: string): Observable<Address> {
+        return this.addressCollectionRef.doc(id).snapshotChanges().pipe(
+            map((action) => {
+                const data = action.payload.data() as Address;
+                return {
+                    ...data,
+                    id
+                };
+            })
+        );
+    }
+
+    getCountries(): Observable<string[]> {
+        return this.http.get('https://restcountries.eu/rest/v2/all').pipe(
+            map((countries: any[]) => countries.map((c: any) => c.name))
+        );
     }
 
     parseAddress(addressComponents: AddressComponent[] | google.maps.GeocoderAddressComponent[]) {

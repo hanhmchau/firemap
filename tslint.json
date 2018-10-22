@@ -12,6 +12,7 @@
         "quotemark": [true, "single"],
         "no-submodule-imports": [
             false
-        ]
+        ],
+        "arrow-parens": [false]
     }
 }

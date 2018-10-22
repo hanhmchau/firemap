@@ -7,6 +7,4 @@ import Address from './models/address';
     styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-    onFocusMap(address: Address) {
-    }
 }
