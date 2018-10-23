@@ -205,16 +205,7 @@ export class MapService {
             );
     }
 
-    procGoogle() {
-        try {
-            const serv = new google.maps.DistanceMatrixService();
-        } catch (e) {
-            console.warn('proc google');
-        }
-    }
-
     getNearby(address: Address): Observable<any[]> {
-        this.procGoogle();
         return Observable.create((observer: Observer<any[]>) => {
             const center = {
                 lat: address.lat,
@@ -256,14 +247,107 @@ export class MapService {
     }
 
     getCountries(): Observable<any[]> {
-        return this.http.get('https://restcountries.eu/rest/v2/all').pipe(
-            map((countries: any[]) =>
-                countries.map((c: any) => ({
-                    name: c.name,
-                    code: c.alpha2Code
-                }))
-            )
-        );
+        const params = new HttpParams()
+            .set('username', consts.GEONAME_USER)
+            .set('featureCode', 'PCLI')
+            .set('style', 'SHORT');
+        return this.http
+            .get('http://api.geonames.org/searchJSON', { params })
+            .pipe(
+                map((countries: any) =>
+                    countries.geonames
+                        .map((c: any) => ({
+                            id: c.geonameId,
+                            name: c.name,
+                            code: c.countryCode
+                        }))
+                        .sort((a: any, b: any) =>
+                            (a.name as string)
+                                .toLocaleLowerCase()
+                                .localeCompare(
+                                    (b.name as string).toLocaleLowerCase()
+                                )
+                        )
+                )
+            );
+    }
+
+    getCities(countryId: string): Observable<any[]> {
+        const params = new HttpParams()
+            .set('username', consts.GEONAME_USER)
+            .set('featureCode', 'ADM1')
+            .set('style', 'SHORT')
+            .set('geonameId', countryId);
+        return this.http
+            .get('http://api.geonames.org/childrenJSON', { params })
+            .pipe(
+                map((cities: any) =>
+                    cities.geonames
+                        .map((c: any) => ({
+                            id: c.geonameId,
+                            name: c.toponymName
+                        }))
+                        .sort((a: any, b: any) =>
+                            (a.name as string)
+                                .toLocaleLowerCase()
+                                .localeCompare(
+                                    (b.name as string).toLocaleLowerCase()
+                                )
+                        )
+                )
+            );
+    }
+
+    getDistricts(cityId: string): Observable<any[]> {
+        const params = new HttpParams()
+            .set('username', consts.GEONAME_USER)
+            .set('featureCode', 'ADM2')
+            .set('style', 'SHORT')
+            .set('geonameId', cityId);
+        return this.http
+            .get('http://api.geonames.org/childrenJSON', { params })
+            .pipe(
+                map((districts: any) =>
+                    districts.geonames
+                        .map((c: any) => ({
+                            id: c.geonameId,
+                            name: c.toponymName
+                        }))
+                        .sort((a: any, b: any) =>
+                            (a.name as string)
+                                .toLocaleLowerCase()
+                                .localeCompare(
+                                    (b.name as string).toLocaleLowerCase()
+                                )
+                        )
+                )
+            );
+    }
+
+    getWards(districtId: string): Observable<any[]> {
+        const params = new HttpParams()
+            .set('username', consts.GEONAME_USER)
+            .set('featureCode', 'ADM3')
+            .set('style', 'SHORT')
+            .set('geonameId', districtId);
+        return this.http
+            .get('http://api.geonames.org/childrenJSON', { params })
+            .pipe(
+                map((wards: any) =>
+                    wards.geonames
+                        .map((c: any) => ({
+                            id: c.geonameId,
+                            name: c.toponymName
+                        }))
+                        .sort((a: any, b: any) =>
+                            (a.name as string)
+                                .toLocaleLowerCase()
+                                .localeCompare(
+                                    (b.name as string).toLocaleLowerCase()
+                                )
+                        )
+                )
+            );
     }
 
     parseAddress(
