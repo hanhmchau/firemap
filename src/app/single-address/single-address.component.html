@@ -1,66 +1,77 @@
 <div *ngIf="address">
-    <form #addressForm="ngForm">
-        <div class="row">
-            <div class="form-group col-md-4">
-                <label>Street</label><small class="d-inline-block ml-2 text-muted text-danger">Required</small>
-                <input name="street" #street="ngModel" [ngClass]="{'form-control': true, 'is-invalid': (street.dirty || trySaved ) && !address.street}"
-                    (blur)="refreshMap()" spellcheck="false" [(ngModel)]="address.street" placeholder="Street">
-            </div>
-            <div class="form-group col-md-4">
-                <label>Ward</label>
-                <input name="ward" [ngClass]="{'form-control': true, 'is-invalid': (trySaved || city.dirty || ward.dirty || district.dirty) && (!address.city && (!address.district || !address.ward))}"
-                    #ward="ngModel" class="form-control" (blur)="refreshMap()" spellcheck="false" [(ngModel)]="address.ward"
-                    placeholder="Ward">
-            </div>
-            <div class="form-group col-md-4">
-                <label>District</label>
-                <input name="district" [ngClass]="{'form-control': true, 'is-invalid': (trySaved || city.dirty || ward.dirty || district.dirty) && (!address.city && (!address.district || !address.ward))}"
-                    #district="ngModel" class="form-control" (blur)="refreshMap()" spellcheck="false" [(ngModel)]="address.district"
-                    placeholder="District">
-            </div>
+    <div class="row">
+        <div class="col-md-6">
+            <form #addressForm="ngForm">
+                <div class="form-group col-lg-11">
+                    <label>Street</label><small class="d-inline-block ml-2 text-muted text-danger">Required</small>
+                    <input name="street" #street="ngModel" [ngClass]="{'form-control': true, 'is-invalid': (street.dirty || trySaved ) && !address.street}"
+                        (blur)="refreshMap()" spellcheck="false" [(ngModel)]="address.street" placeholder="Street">
+                </div>
+                <div class="form-group col-lg-11" *ngIf="countries.length">
+                    <label>Country</label>
+                    <select class="form-control" id="countries" name="country" [(ngModel)]="address.countryCode" (ngModelChange)="onCountryChanged($event)">
+                        <option *ngFor="let country of countries" [value]="country.code">{{country.name}}</option>
+                    </select>
+                </div>
+                <div class="form-group col-lg-11" *ngIf="address.countryCode && cities.length">
+                    <label>City</label>
+                    <select class="form-control" id="cities" name="city" [(ngModel)]="address.cityId" (ngModelChange)="onCityChanged($event)">
+                        <option *ngFor="let city of cities" [value]="city.id">{{city.name}}</option>
+                    </select>
+                    <!-- <input name="city" #city="ngModel" [ngClass]="{'form-control': true, 'is-invalid': (city && ward && district) && (trySaved || city.dirty || ward.dirty || district.dirty) && (!address.city && (!address.district || !address.ward))}"
+                        (blur)="refreshMap()" spellcheck="false" [(ngModel)]="address.city" placeholder="City"> -->
+                </div>
+                <div class="form-group col-lg-11" *ngIf="address.cityId && districts.length">
+                    <label>District</label>
+                    <select class="form-control" id="districts" name="district" [(ngModel)]="address.districtId">
+                        <option *ngFor="let district of districts" [value]="district.id">{{district.name}}</option>
+                    </select>
+
+                    <!-- <input name="district" [ngClass]="{'form-control': true, 'is-invalid': (city && ward && district) && (trySaved || city.dirty || ward.dirty || district.dirty) && (!address.city && (!address.district || !address.ward))}"
+                        #district="ngModel" class="form-control" (blur)="refreshMap()" spellcheck="false" [(ngModel)]="address.district"
+                        placeholder="District"> -->
+                </div>
+                <div class="form-group col-lg-11" *ngIf="address.district">
+                    <label>Ward</label>
+                    <input name="ward" [ngClass]="{'form-control': true, 'is-invalid': (city && ward && district) && (trySaved || city.dirty || ward.dirty || district.dirty) && (!address.city && (!address.district || !address.ward))}"
+                        #ward="ngModel" class="form-control" (blur)="refreshMap()" spellcheck="false" [(ngModel)]="address.ward"
+                        placeholder="Ward">
+                </div>
+                <div class="form-group col-lg-11">
+                    <button (click)="save()" type="button" class="btn btn-default" aria-label="Edit">
+                        <fa name="save"></fa>
+                        Save
+                    </button>
+                </div>
+                <div class="mt-2">
+                    <div>
+                        <div *ngIf="!streetValidated">
+                            Street is always required.
+                        </div>
+                        <div *ngIf="!wardDistrictValidated">
+                            If "city" is present, then "ward" and "district" are not required.
+                        </div>
+                        <div *ngIf="!wardDistrictValidated">
+                            If "city" is not present, then both "ward" and "district" are required.
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
-        <div class="row">
-            <div class="form-group col-md-6">
-                <label>City</label>
-                <input name="city" #city="ngModel" [ngClass]="{'form-control': true, 'is-invalid': (trySaved || city.dirty || ward.dirty || district.dirty) && (!address.city && (!address.district || !address.ward))}"
-                    (blur)="refreshMap()" spellcheck="false" [(ngModel)]="address.city" placeholder="City">
+        <div class="col-md-6">
+            <div class="position-relative mt-4">
+                <app-map (onAddressUpdated)="onAddressUpdated($event)" (onMapUpdated)="onMapUpdated($event)"
+                    (onMarkerUpdated)="onMarkerUpdated($event)" [marker]="marker" [map$]="map$" [address]="address"></app-map>
             </div>
-            <div class="form-group col-md-6">
-                <label>Country</label>
-                <select class="form-control" id="countries" name="country" [(ngModel)]="address.countryCode">
-                    <option *ngFor="let country of (countries$ | async)" [value]="country.code">{{country.name}}</option>
-                </select>
-            </div>
-        </div>
-    </form>
-    <div class="mt-2">
-        <button (click)="save()" type="button" class="btn btn-default" aria-label="Edit">
-            <fa name="save"></fa>
-            Save
-        </button>
-        <div>
-            <div *ngIf="!streetValidated">
-                Street is always required.
-            </div>
-            <div *ngIf="!wardDistrictValidated">
-                If "city" is present, then "ward" and "district" are not required.
-            </div>
-            <div *ngIf="!wardDistrictValidated">
-                If "city" is not present, then both "ward" and "district" are required.
-            </div>
-        </div>
-    </div>
-    <div class="position-relative mt-4">
-        <app-map (onAddressUpdated)="onAddressUpdated($event)" (onMapUpdated)="onMapUpdated($event)" (onMarkerUpdated)="onMarkerUpdated($event)"
-            [marker]="marker" [map$]="map$" [address]="address"></app-map>
-    </div>
-    <div *ngIf="nearbyAddresses.length">
-        <h5>Nearby addresses</h5>
-        <div *ngFor="let nearby of nearbyAddresses" class="card">
-            <div class="card-body">
-                <h5 class="card-title">{{nearby.address}}</h5>
-                <h6 class="card-subtitle mb-2 text-muted">{{nearby.distance.text}}</h6>
-                <a [routerLink]="[ '/address', nearby.id ]" class="card-link">View</a>
+            <div *ngIf="nearbyAddresses.length">
+                <h5>Nearby addresses</h5>
+                <div *ngFor="let nearby of nearbyAddresses" class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{nearby.address}}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{nearby.distance.text}}</h6>
+                        <a [routerLink]="[ '/address', nearby.id ]" class="card-link">View</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

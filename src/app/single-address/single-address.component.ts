@@ -1,14 +1,12 @@
 import { LatLngLiteral } from '@agm/core';
-import { MapService } from './../services/map.service';
-import { Component, Input, EventEmitter, Output } from '@angular/core';
-import Address from '../models/address';
-import Marker from '../models/marker';
-import Map from '../models/map';
-import { Subject, Observable, ReplaySubject, BehaviorSubject, Subscription } from 'rxjs';
-import { updateMapWidth } from '../utils';
+import { Component, Input } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
+import Address from '../models/address';
+import Map from '../models/map';
+import Marker from '../models/marker';
+import { MapService } from './../services/map.service';
 
 @Component({
     selector: 'app-single-address',
@@ -22,7 +20,10 @@ export class SingleAddressComponent {
     private marker: Marker;
     private mapSubject: Subject<Map>;
     private map$: Observable<Map>;
-    private countries$: Observable<string[]>;
+    private countries: any[] = [];
+    private cities: any[] = [];
+    private districts: any[] = [];
+    private wards: any[] = [];
     private streetValidated = true;
     private wardDistrictValidated = true;
     private trySaved = false;
@@ -60,15 +61,19 @@ export class SingleAddressComponent {
                 if (address) {
                     this.address = address;
                     this.initialize();
-                    this.mapService.getNearby(this.address).subscribe(nearbyAddresses => {
-                        this.nearbyAddresses = nearbyAddresses;
-                    });
+                    this.mapService
+                        .getNearby(this.address)
+                        .subscribe(nearbyAddresses => {
+                            this.nearbyAddresses = nearbyAddresses;
+                        });
                 } else {
                     this.router.navigate(['/not-found']);
                 }
             });
         }
-        this.countries$ = this.mapService.getCountries();
+        this.mapService.getCountries().subscribe(countries => {
+            this.countries = countries;
+        });
     }
 
     initialize() {
@@ -146,5 +151,24 @@ export class SingleAddressComponent {
         this.toastr.success('Saved', undefined, {
             timeOut: 2000
         });
+    }
+
+    onCountryChanged(countryCode: string) {
+        const countryId = this.countries.filter(c => c.code === countryCode)[0]
+            .id;
+        this.mapService
+            .getCities(countryId)
+            .subscribe(cities => {
+                console.log(cities);
+                this.cities = cities;
+            });
+        this.refreshMap();
+    }
+
+    onCityChanged(cityId: string) {
+        this.mapService.getDistricts(cityId).subscribe(districts => {
+            this.districts = districts;
+        });
+        this.refreshMap();
     }
 }
