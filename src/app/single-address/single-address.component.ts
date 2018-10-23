@@ -4,7 +4,7 @@ import { Component, Input, EventEmitter, Output } from '@angular/core';
 import Address from '../models/address';
 import Marker from '../models/marker';
 import Map from '../models/map';
-import { Subject, Observable, ReplaySubject, BehaviorSubject } from 'rxjs';
+import { Subject, Observable, ReplaySubject, BehaviorSubject, Subscription } from 'rxjs';
 import { updateMapWidth } from '../utils';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
@@ -26,6 +26,8 @@ export class SingleAddressComponent {
     private streetValidated = true;
     private wardDistrictValidated = true;
     private trySaved = false;
+    private nearbyAddresses: any[] = [];
+    private routeSubscription: Subscription;
 
     constructor(
         private mapService: MapService,
@@ -35,7 +37,18 @@ export class SingleAddressComponent {
     ) {}
 
     ngOnInit(): void {
-        const id = this.route.snapshot.paramMap.get('id');
+        this.routeSubscription = this.route.paramMap.subscribe(paramMap => {
+            const id = paramMap.get('id');
+            this.fetchAddress(id);
+            window.scrollTo(0, 0);
+        });
+    }
+
+    ngOnDestroy(): void {
+        this.routeSubscription.unsubscribe();
+    }
+
+    fetchAddress(id: string) {
         if (this.route.toString().indexOf('new') >= 0) {
             this.address = {
                 id: '-1',
@@ -47,7 +60,9 @@ export class SingleAddressComponent {
                 if (address) {
                     this.address = address;
                     this.initialize();
-                    this.mapService.getNearby(this.address).subscribe();
+                    this.mapService.getNearby(this.address).subscribe(nearbyAddresses => {
+                        this.nearbyAddresses = nearbyAddresses;
+                    });
                 } else {
                     this.router.navigate(['/not-found']);
                 }

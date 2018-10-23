@@ -205,19 +205,28 @@ export class MapService {
             );
     }
 
-    getNearby(address: Address): Observable<Address[]> {
-        return Observable.create((observer: Observer<Address[]>) => {
+    procGoogle() {
+        try {
+            const serv = new google.maps.DistanceMatrixService();
+        } catch (e) {
+            console.warn('proc google');
+        }
+    }
+
+    getNearby(address: Address): Observable<any[]> {
+        this.procGoogle();
+        return Observable.create((observer: Observer<any[]>) => {
             const center = {
                 lat: address.lat,
                 lng: address.lng
             };
-            const latLngs = this.addresses
+            const otherAddresses = this.addresses
                 .filter(addr => addr.id !== address.id)
-                .map(addr => ({
-                    lat: addr.lat,
-                    lng: addr.lng
-                }))
                 .slice(0, 20);
+            const latLngs = otherAddresses.map(addr => ({
+                lat: addr.lat,
+                lng: addr.lng
+            }));
             try {
                 const service = new google.maps.DistanceMatrixService();
                 service.getDistanceMatrix(
@@ -225,37 +234,25 @@ export class MapService {
                         origins: [center],
                         destinations: latLngs,
                         travelMode: google.maps.TravelMode.DRIVING
-                    }, this.callback
+                    },
+                    (response: google.maps.DistanceMatrixResponse) => {
+                        const distances = response.rows[0].elements;
+                        const nearbyAddresses = response.destinationAddresses
+                            .map((addr, i) => ({
+                                id: otherAddresses[i].id,
+                                address: addr,
+                                distance: distances[i].distance
+                            }))
+                            .filter(addr => addr.distance.value <= 25 * 1000) // 25km
+                            .sort((a, b) => a.distance.value - b.distance.value)
+                            .slice(0, 5);
+                        observer.next(nearbyAddresses);
+                    }
                 );
-                // this.getDistanceMatrix([center], latLngs).subscribe(r => console.log(r));
             } catch (e) {
                 console.warn(e);
             }
         });
-    }
-
-    callback() {
-        console.log('nya');
-    }
-
-    getDistanceMatrix(
-        origins: LatLngLiteral[],
-        destinations: LatLngLiteral[]
-    ): Observable<any> {
-        const params = new HttpParams()
-            .set('origins', this.createLatLngParam(origins))
-            .set('destinations', this.createLatLngParam(destinations))
-            .set('key', consts.MAP_API)
-            .set('travelMode', 'DRIVING');
-        const headers = new HttpHeaders().set('dataType', 'jsonp');
-        return this.http.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
-            params,
-            headers
-        });
-    }
-
-    createLatLngParam(dests: LatLngLiteral[]) {
-        return dests.map(dest => `${dest.lat},${dest.lng}`).join('|');
     }
 
     getCountries(): Observable<any[]> {
