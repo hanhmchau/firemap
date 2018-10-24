@@ -23,7 +23,11 @@ export class SingleAddressComponent {
     @Input()
     address: Address;
     private width: number;
-    private marker: Marker;
+    private marker: Marker = {
+        lat: 105,
+        lng: 10,
+        draggable: true
+    };
     private mapSubject: Subject<Map>;
     private map$: Observable<Map>;
     private countries: any[] = [];
@@ -35,6 +39,7 @@ export class SingleAddressComponent {
     private trySaved = false;
     private nearbyAddresses: any[] = [];
     private routeSubscription: Subscription;
+    private savedId: string;
 
     constructor(
         private mapService: MapService,
@@ -67,6 +72,7 @@ export class SingleAddressComponent {
                 if (address) {
                     this.address = address;
                     this.initialize();
+                    this.savedId = id.slice();
                     this.fetchInitialOptions();
                     this.mapService
                         .getNearby(this.address)
@@ -84,11 +90,8 @@ export class SingleAddressComponent {
     }
 
     initialize() {
-        this.marker = {
-            lat: this.address.lat,
-            lng: this.address.lng,
-            draggable: true
-        };
+        this.marker.lat = this.address.lat;
+        this.marker.lng = this.address.lng;
         this.mapSubject = new BehaviorSubject<Map>({
             lat: this.address.lat,
             lng: this.address.lng,
@@ -105,11 +108,10 @@ export class SingleAddressComponent {
             this.mapService.searchDistrict(this.address.district),
             this.mapService.searchWard(this.address.ward)
         ).subscribe((values) => {
-            console.log(values);
             this.address.countryId = values[0];
             this.address.cityId = values[1];
             this.address.districtId = values[2];
-            this.address.wardId = values[3];
+            this.address.wardId = values[3] || '';
             this.fetchInitialOptions();
         });
     }
@@ -132,10 +134,8 @@ export class SingleAddressComponent {
                 const { lat, lng } = { ...latlng };
                 this.address.lat = lat;
                 this.address.lng = lng;
-                this.marker = {
-                    lat,
-                    lng
-                };
+                this.marker.lat = lat;
+                this.marker.lng = lng;
                 this.mapSubject.next({
                     lat,
                     lng
@@ -164,6 +164,7 @@ export class SingleAddressComponent {
                     this.router.navigate(['/']);
                 });
             } else {
+                this.address.id = this.savedId;
                 this.mapService.update(this.address).subscribe();
             }
         }
@@ -198,8 +199,8 @@ export class SingleAddressComponent {
         this.mapService.getDistricts(cityId).subscribe(districts => {
             this.districts = districts;
             this.wards = [];
-            delete this.address.ward;
-            delete this.address.wardId;
+            delete this.address.district;
+            delete this.address.districtId;
         });
         this.refreshMap();
     }
@@ -210,6 +211,8 @@ export class SingleAddressComponent {
         )[0].name;
         this.mapService.getWards(districtId).subscribe(wards => {
             this.wards = wards;
+            this.address.ward = '';
+            this.address.wardId = '';
         });
         this.refreshMap();
     }
@@ -218,6 +221,7 @@ export class SingleAddressComponent {
         this.address.ward = this.wards.filter(
             ward => ward.id === parseInt(wardId, 10)
         )[0].name;
+        this.address.wardId = wardId;
         this.refreshMap();
     }
 
@@ -230,6 +234,7 @@ export class SingleAddressComponent {
             this.cities = values[0];
             this.districts = values[1];
             this.wards = values[2];
+            console.log(this.address);
         });
     }
 }

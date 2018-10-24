@@ -36,6 +36,7 @@
                 <div class="form-group col-lg-11" *ngIf="address.districtId && wards.length">
                     <label>Ward</label>
                     <select class="form-control" id="wards" name="ward" [(ngModel)]="address.wardId" (ngModelChange)="onWardChanged($event)">
+                        <option [value]="''" disabled hidden></option>
                         <option *ngFor="let ward of wards" [value]="ward.id">{{ward.name}}</option>
                     </select>
                 </div>

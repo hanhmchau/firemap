@@ -29,26 +29,6 @@ import Marker from '../models/marker';
 export class MapService {
     private categoryUrl = `${0}/category`; // URL to web api
     private addresses: Address[] = [
-        {
-            id: '1',
-            street: 'Hu',
-            ward: 'Ben Thanh',
-            district: 'Go Vap',
-            city: 'Ha Noi',
-            country: 'Viet Nam',
-            lat: 105,
-            lng: 10
-        },
-        {
-            id: '2',
-            street: 'Hi Hi',
-            ward: 'Ben Thanh',
-            district: 'Go Vap',
-            city: 'Ha Noi',
-            country: 'Viet Nam',
-            lat: 108,
-            lng: 20
-        }
     ];
     private activeMarker = new Subject<Marker>();
     private activeMap = new Subject<Map>();
@@ -386,23 +366,23 @@ export class MapService {
     private searchDestinations(
         destName: string,
         featureCode: string
-    ): Observable<string | undefined> {
+    ): Observable<string> {
         if (!destName) {
-            return of(undefined);
+            return of('');
         }
         const params = new HttpParams()
             .set('username', consts.GEONAME_USER)
             .set('featureCode', featureCode)
             .set('style', 'SHORT')
-            .set('name', destName);
+            .set('name', this.transformExceptions(destName, featureCode));
         return this.http
             .get('http://api.geonames.org/searchJSON', { params })
             .pipe(
                 map(
-                    (wards: any) =>
-                        wards.geonames.length
-                            ? wards.geonames[0].geonameId
-                            : undefined
+                    (dests: any) =>
+                        dests.geonames.length
+                            ? dests.geonames[0].geonameId
+                            : ''
                 )
             );
     }
@@ -437,5 +417,12 @@ export class MapService {
                         )
                 )
             );
+    }
+
+    private transformExceptions(destName: string, featureCode: string): string {
+        if (featureCode === consts.GEONAME_LEVELS.DISTRICT && destName.indexOf('Tân Bình') >= 0) {
+            return 'Quận ' + destName;
+        }
+        return destName;
     }
 }
