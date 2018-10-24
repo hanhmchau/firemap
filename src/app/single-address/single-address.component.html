@@ -9,7 +9,8 @@
                 </div>
                 <div class="form-group col-lg-11" *ngIf="countries.length">
                     <label>Country</label>
-                    <select class="form-control" id="countries" name="country" [(ngModel)]="address.countryCode" (ngModelChange)="onCountryChanged($event)">
+                    <select class="form-control" id="countries" name="country" [(ngModel)]="address.countryCode"
+                        (ngModelChange)="onCountryChanged($event)">
                         <option *ngFor="let country of countries" [value]="country.code">{{country.name}}</option>
                     </select>
                 </div>
@@ -23,7 +24,8 @@
                 </div>
                 <div class="form-group col-lg-11" *ngIf="address.cityId && districts.length">
                     <label>District</label>
-                    <select class="form-control" id="districts" name="district" [(ngModel)]="address.districtId" (ngModelChange)="onDistrictChanged($event)">
+                    <select class="form-control" id="districts" name="district" [(ngModel)]="address.districtId"
+                        (ngModelChange)="onDistrictChanged($event)">
                         <option *ngFor="let district of districts" [value]="district.id">{{district.name}}</option>
                     </select>
 
@@ -63,13 +65,17 @@
                 <app-map (onAddressUpdated)="onAddressUpdated($event)" (onMapUpdated)="onMapUpdated($event)"
                     (onMarkerUpdated)="onMarkerUpdated($event)" [marker]="marker" [map$]="map$" [address]="address"></app-map>
             </div>
-            <div *ngIf="nearbyAddresses.length">
-                <h5>Nearby addresses</h5>
-                <div *ngFor="let nearby of nearbyAddresses" class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">{{nearby.address}}</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">{{nearby.distance.text}}</h6>
-                        <a [routerLink]="[ '/address', nearby.id ]" class="card-link">View</a>
+            <div class="mt-4" *ngIf="nearbyAddresses.length">
+                <h6>Nearby addresses</h6>
+                <div class="row">
+                    <div *ngFor="let nearby of nearbyAddresses" class="card col-md-4 m-3">
+                        <div class="card-body">
+                            <h6 class="card-title">{{nearby.address}}</h6>
+                            <span class="card-subtitle mb-2 text-muted">{{nearby.distance.text}}</span>
+                            <footer>
+                                <a [routerLink]="[ '/address', nearby.id ]" class="card-link">View</a>
+                            </footer>
+                        </div>
                     </div>
                 </div>
             </div>

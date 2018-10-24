@@ -99,6 +99,19 @@ export class SingleAddressComponent {
 
     onAddressUpdated(address: Address) {
         this.address = { ...this.address, ...address };
+        forkJoin(
+            this.mapService.searchCountry(this.address.country),
+            this.mapService.searchCity(this.address.city),
+            this.mapService.searchDistrict(this.address.district),
+            this.mapService.searchWard(this.address.ward)
+        ).subscribe((values) => {
+            console.log(values);
+            this.address.countryId = values[0];
+            this.address.cityId = values[1];
+            this.address.districtId = values[2];
+            this.address.wardId = values[3];
+            this.fetchInitialOptions();
+        });
     }
 
     onMapUpdated(map: Map) {
@@ -117,6 +130,8 @@ export class SingleAddressComponent {
         this.mapService.geocode(addr).subscribe((latlng: LatLngLiteral) => {
             if (latlng) {
                 const { lat, lng } = { ...latlng };
+                this.address.lat = lat;
+                this.address.lng = lng;
                 this.marker = {
                     lat,
                     lng
