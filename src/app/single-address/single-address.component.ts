@@ -2,7 +2,13 @@ import { LatLngLiteral } from '@agm/core';
 import { Component, Input } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
+import {
+    BehaviorSubject,
+    Observable,
+    Subject,
+    Subscription,
+    forkJoin
+} from 'rxjs';
 import Address from '../models/address';
 import Map from '../models/map';
 import Marker from '../models/marker';
@@ -61,6 +67,7 @@ export class SingleAddressComponent {
                 if (address) {
                     this.address = address;
                     this.initialize();
+                    this.fetchInitialOptions();
                     this.mapService
                         .getNearby(this.address)
                         .subscribe(nearbyAddresses => {
@@ -156,19 +163,58 @@ export class SingleAddressComponent {
     onCountryChanged(countryCode: string) {
         const countryId = this.countries.filter(c => c.code === countryCode)[0]
             .id;
-        this.mapService
-            .getCities(countryId)
-            .subscribe(cities => {
-                console.log(cities);
-                this.cities = cities;
-            });
+        this.address.countryId = countryId;
+        this.mapService.getCities(countryId).subscribe(cities => {
+            this.cities = cities;
+            this.districts = [];
+            this.wards = [];
+            delete this.address.district;
+            delete this.address.districtId;
+            delete this.address.ward;
+            delete this.address.wardId;
+        });
         this.refreshMap();
     }
 
     onCityChanged(cityId: string) {
+        this.address.city = this.cities.filter(
+            city => city.id === parseInt(cityId, 10)
+        )[0].name;
         this.mapService.getDistricts(cityId).subscribe(districts => {
             this.districts = districts;
+            this.wards = [];
+            delete this.address.ward;
+            delete this.address.wardId;
         });
         this.refreshMap();
+    }
+
+    onDistrictChanged(districtId: string) {
+        this.address.district = this.districts.filter(
+            d => d.id === parseInt(districtId, 10)
+        )[0].name;
+        this.mapService.getWards(districtId).subscribe(wards => {
+            this.wards = wards;
+        });
+        this.refreshMap();
+    }
+
+    onWardChanged(wardId: string) {
+        this.address.ward = this.wards.filter(
+            ward => ward.id === parseInt(wardId, 10)
+        )[0].name;
+        this.refreshMap();
+    }
+
+    fetchInitialOptions() {
+        forkJoin(
+            this.mapService.getCities(this.address.countryId),
+            this.mapService.getDistricts(this.address.cityId),
+            this.mapService.getWards(this.address.districtId)
+        ).subscribe((values: any[]) => {
+            this.cities = values[0];
+            this.districts = values[1];
+            this.wards = values[2];
+        });
     }
 }

@@ -9,6 +9,7 @@ export default class Address {
     lng?: number;
     label?: number;
     countryCode?: string;
+    countryId?: string;
     cityId?: string;
     districtId?: string;
     wardId?: string;

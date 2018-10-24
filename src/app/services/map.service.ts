@@ -273,6 +273,9 @@ export class MapService {
     }
 
     getCities(countryId: string): Observable<any[]> {
+        if (!countryId) {
+            return of([]);
+        }
         const params = new HttpParams()
             .set('username', consts.GEONAME_USER)
             .set('featureCode', 'ADM1')
@@ -299,6 +302,9 @@ export class MapService {
     }
 
     getDistricts(cityId: string): Observable<any[]> {
+        if (!cityId) {
+            return of([]);
+        }
         const params = new HttpParams()
             .set('username', consts.GEONAME_USER)
             .set('featureCode', 'ADM2')
@@ -325,6 +331,9 @@ export class MapService {
     }
 
     getWards(districtId: string): Observable<any[]> {
+        if (!districtId) {
+            return of([]);
+        }
         const params = new HttpParams()
             .set('username', consts.GEONAME_USER)
             .set('featureCode', 'ADM3')
