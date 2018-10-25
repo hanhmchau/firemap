@@ -152,7 +152,6 @@ export class SingleAddressComponent {
     }
 
     save() {
-        console.log(this.address);
         this.trySaved = true;
         this.streetValidated = this.isStreetValidated();
         this.wardDistrictValidated = this.isWardDistrictValidated();
@@ -233,7 +232,6 @@ export class SingleAddressComponent {
             this.cities = values[0];
             this.districts = values[1];
             this.wards = values[2];
-            console.log(this.address);
         });
     }
 }

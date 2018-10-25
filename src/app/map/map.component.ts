@@ -59,7 +59,6 @@ export class MapComponent {
             this.map.lat = map.lat;
             this.map.lng = map.lng;
             this.map.zoom = 14;
-            console.log(this.map);
             if (this.agmMapRef) {
                 this.agmMapRef.triggerResize(true).then(() => {
                     (this.agmMapRef as any)._mapsWrapper.setCenter({
