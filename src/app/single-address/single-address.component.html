@@ -63,18 +63,18 @@
         </div>
         <div class="col-md-6">
             <div class="position-relative mt-4">
-                <app-map *ngIf="map$" (onAddressUpdated)="onAddressUpdated($event)" (onMapUpdated)="onMapUpdated($event)"
+                <app-map *ngIf="map$" (onAddressUpdated)="onAddressUpdated($event)" (onLoaded)="onLoaded($event)" (onMapUpdated)="onMapUpdated($event)"
                     (onMarkerUpdated)="onMarkerUpdated($event)" [marker]="marker" [map$]="map$" [address]="address"></app-map>
             </div>
             <div class="mt-4" *ngIf="nearbyAddresses.length">
                 <h6>Nearby addresses</h6>
                 <div class="row">
                     <div *ngFor="let nearby of nearbyAddresses" class="col-md-4 p-2">
-                        <a [routerLink]="[ '/address', nearby.id ]" class="card-link small">
-                            <div class="card">
+                        <a [routerLink]="[ '/address', nearby.id ]" class="card-link">
+                            <div class="card h-100">
                                 <div class="card-body">
                                     <div class="title">{{nearby.address}}</div>
-                                    <span class="card-subtitle mb-2 text-muted small">{{nearby.distance.text}}</span>
+                                    <span class="card-subtitle mb-2 text-info small">{{nearby.distance.text}}</span>
                                 </div>
                             </div>
                         </a>

@@ -70,11 +70,6 @@ export class SingleAddressComponent {
                     this.initialize();
                     this.savedId = id.slice();
                     this.fetchInitialOptions();
-                    this.mapService
-                        .getNearby(this.address)
-                        .subscribe(nearbyAddresses => {
-                            this.nearbyAddresses = nearbyAddresses;
-                        });
                 } else {
                     this.router.navigate(['/not-found']);
                 }
@@ -233,5 +228,13 @@ export class SingleAddressComponent {
             this.districts = values[1];
             this.wards = values[2];
         });
+    }
+
+    onLoaded() {
+        this.mapService
+            .getNearby(this.address)
+            .subscribe(nearbyAddresses => {
+                this.nearbyAddresses = nearbyAddresses;
+            });
     }
 }

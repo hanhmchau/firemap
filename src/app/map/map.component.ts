@@ -1,5 +1,12 @@
 import { AgmMap, LatLngLiteral, MapsAPILoader, MouseEvent } from '@agm/core';
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import {
+    Component,
+    ElementRef,
+    EventEmitter,
+    Input,
+    Output,
+    ViewChild
+} from '@angular/core';
 import { createClient, GoogleMapsClient } from '@google/maps';
 import { Observable, Observer } from 'rxjs';
 import '../../../node_modules/google-maps-api-typings/index.d';
@@ -17,11 +24,14 @@ import consts from '../../consts';
 export class MapComponent {
     @Input()
     address: Address;
-    @Input() marker: Marker;
-    @Input() map$: Observable<Map>;
+    @Input()
+    marker: Marker;
+    @Input()
+    map$: Observable<Map>;
     @ViewChild('addressBox')
     public addressBoxRef: ElementRef;
-    @ViewChild(AgmMap) public agmMapRef: AgmMap;
+    @ViewChild(AgmMap)
+    public agmMapRef: AgmMap;
     client: GoogleMapsClient;
     map: Map = {
         lat: 0,
@@ -29,12 +39,21 @@ export class MapComponent {
         zoom: 12
     };
     autocomplete: google.maps.places.Autocomplete;
-    @Input() width: string;
-    @Output() onAddressUpdated: EventEmitter<Address> = new EventEmitter();
-    @Output() onMarkerUpdated: EventEmitter<Marker> = new EventEmitter();
-    @Output() onMapUpdated: EventEmitter<Map> = new EventEmitter();
+    @Input()
+    width: string;
+    @Output()
+    onAddressUpdated: EventEmitter<Address> = new EventEmitter();
+    @Output()
+    onMarkerUpdated: EventEmitter<Marker> = new EventEmitter();
+    @Output()
+    onMapUpdated: EventEmitter<Map> = new EventEmitter();
+    @Output()
+    onLoaded: EventEmitter<boolean> = new EventEmitter();
 
-    constructor(private mapsAPILoader: MapsAPILoader, private mapService: MapService) {}
+    constructor(
+        private mapsAPILoader: MapsAPILoader,
+        private mapService: MapService
+    ) {}
 
     initializeAutocomplete() {
         this.client = createClient({ key: consts.MAP_API });
@@ -51,6 +70,7 @@ export class MapComponent {
 
                 this.initAutocomplete(bounds);
             });
+            this.onLoaded.emit(true);
         });
     }
 
@@ -92,7 +112,9 @@ export class MapComponent {
             const lng = place.geometry.location.lng();
             this.updateMarker(lat, lng);
             this.updateMap(lat, lng, 17);
-            const parsedAddress = this.mapService.parseAddress(place.address_components);
+            const parsedAddress = this.mapService.parseAddress(
+                place.address_components
+            );
             parsedAddress.lat = lat;
             parsedAddress.lng = lng;
             this.onAddressUpdated.emit(parsedAddress);
@@ -118,9 +140,11 @@ export class MapComponent {
     updateMarkerPosition($event: MouseEvent) {
         const { lat = 105, lng = 10 } = { ...$event.coords };
         this.updateMarker(lat, lng);
-        this.mapService.reverseGeocode(lat, lng).subscribe((address: Address) => {
-            this.onAddressUpdated.emit(address);
-        });
+        this.mapService
+            .reverseGeocode(lat, lng)
+            .subscribe((address: Address) => {
+                this.onAddressUpdated.emit(address);
+            });
     }
     mapClicked($event: MouseEvent) {
         this.updateMarkerPosition($event);
