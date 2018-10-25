@@ -40,8 +40,10 @@ export class MapComponent {
         this.client = createClient({ key: consts.MAP_API });
         this.mapsAPILoader.load().then(() => {
             this.getCurrentPosition().subscribe((latLng: LatLngLiteral) => {
-                this.updateMarker(latLng.lat, latLng.lng);
-                this.updateMap(latLng.lat, latLng.lng, 12);
+                if (this.address.id === '-1') {
+                    this.updateMarker(latLng.lat, latLng.lng);
+                    this.updateMap(latLng.lat, latLng.lng, 12);
+                }
                 const bounds = new google.maps.Circle({
                     center: latLng,
                     radius: 25
@@ -53,11 +55,11 @@ export class MapComponent {
     }
 
     ngOnInit(): void {
-        this.initializeAutocomplete();
         this.map$.subscribe((map: Map) => {
             this.map.lat = map.lat;
             this.map.lng = map.lng;
             this.map.zoom = 14;
+            console.log(this.map);
             if (this.agmMapRef) {
                 this.agmMapRef.triggerResize(true).then(() => {
                     (this.agmMapRef as any)._mapsWrapper.setCenter({
@@ -66,6 +68,7 @@ export class MapComponent {
                     });
                 });
             }
+            this.initializeAutocomplete();
         });
     }
 
@@ -114,7 +117,7 @@ export class MapComponent {
         });
     }
     updateMarkerPosition($event: MouseEvent) {
-        const { lat = 105, lng = 10} = { ...$event.coords };
+        const { lat = 105, lng = 10 } = { ...$event.coords };
         this.updateMarker(lat, lng);
         this.mapService.reverseGeocode(lat, lng).subscribe((address: Address) => {
             this.onAddressUpdated.emit(address);

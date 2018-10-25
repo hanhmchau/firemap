@@ -23,11 +23,7 @@ export class SingleAddressComponent {
     @Input()
     address: Address;
     private width: number;
-    private marker: Marker = {
-        lat: 105,
-        lng: 10,
-        draggable: true
-    };
+    private marker: Marker;
     private mapSubject: Subject<Map>;
     private map$: Observable<Map>;
     private countries: any[] = [];
@@ -90,8 +86,10 @@ export class SingleAddressComponent {
     }
 
     initialize() {
-        this.marker.lat = this.address.lat;
-        this.marker.lng = this.address.lng;
+        this.marker = {
+            lat: this.address.lat,
+            lng: this.address.lng
+        };
         this.mapSubject = new BehaviorSubject<Map>({
             lat: this.address.lat,
             lng: this.address.lng,
@@ -154,6 +152,7 @@ export class SingleAddressComponent {
     }
 
     save() {
+        console.log(this.address);
         this.trySaved = true;
         this.streetValidated = this.isStreetValidated();
         this.wardDistrictValidated = this.isWardDistrictValidated();

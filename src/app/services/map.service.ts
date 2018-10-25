@@ -28,8 +28,7 @@ import Marker from '../models/marker';
 })
 export class MapService {
     private categoryUrl = `${0}/category`; // URL to web api
-    private addresses: Address[] = [
-    ];
+    private addresses: Address[] = [];
     private activeMarker = new Subject<Marker>();
     private activeMap = new Subject<Map>();
     private client: GoogleMapsClient;
@@ -380,9 +379,7 @@ export class MapService {
             .pipe(
                 map(
                     (dests: any) =>
-                        dests.geonames.length
-                            ? dests.geonames[0].geonameId
-                            : ''
+                        dests.geonames.length ? dests.geonames[0].geonameId : ''
                 )
             );
     }
@@ -420,7 +417,11 @@ export class MapService {
     }
 
     private transformExceptions(destName: string, featureCode: string): string {
-        if (featureCode === consts.GEONAME_LEVELS.DISTRICT && destName.indexOf('Tân Bình') >= 0) {
+        if (
+            featureCode === consts.GEONAME_LEVELS.DISTRICT &&
+            (destName.indexOf('Tân Bình') >= 0 ||
+                destName.indexOf('Bình Thạnh') >= 0)
+        ) {
             return 'Quận ' + destName;
         }
         return destName;
