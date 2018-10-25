@@ -107,15 +107,12 @@ export class MapService {
         this.activeMarker.next(marker);
     }
 
-    setActiveMap(map: Map): void {
-        this.activeMap.next(map);
+    setActiveMap(newMap: Map): void {
+        this.activeMap.next(newMap);
     }
 
     setActiveAddress(address: Address): void {
-        const { street, ward, city, country, district } = { ...address };
-        const addr = [street, ward, district, city, country]
-            .filter((x: string) => !!x)
-            .join(', ');
+        const addr = Address.toAddress(address);
         this.client.geocode(
             {
                 address: addr
@@ -211,7 +208,7 @@ export class MapService {
                         const nearbyAddresses = response.destinationAddresses
                             .map((addr, i) => ({
                                 id: otherAddresses[i].id,
-                                address: addr,
+                                address: Address.toAddress(otherAddresses[i]),
                                 distance: distances[i].distance
                             }))
                             .filter(addr => addr.distance.value <= 25 * 1000) // 25km

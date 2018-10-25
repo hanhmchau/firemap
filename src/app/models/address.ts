@@ -1,4 +1,11 @@
 export default class Address {
+    static toAddress(address: Address): string {
+        const { street, ward, city, country, district } = { ...address };
+        const addr = [street, ward, district, city, country]
+            .filter((x: string) => !!x)
+            .join(', ');
+        return addr;
+    }
     id?: string;
     street: string;
     ward?: string;
