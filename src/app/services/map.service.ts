@@ -34,6 +34,7 @@ export class MapService {
     private client: GoogleMapsClient;
     private addressCollectionRef: AngularFirestoreCollection<Address>;
     private lastQueriedId: string = null;
+    private geonameUrl = 'http://img.geonames.org/';
 
     constructor(private http: HttpClient, private fb: AngularFirestore) {
         this.client = createClient({
@@ -230,25 +231,23 @@ export class MapService {
             .set('username', consts.GEONAME_USER)
             .set('featureCode', consts.GEONAME_LEVELS.COUNTRY)
             .set('style', 'SHORT');
-        return this.http
-            .get('https://api.geonames.org/searchJSON', { params })
-            .pipe(
-                map((countries: any) =>
-                    countries.geonames
-                        .map((c: any) => ({
-                            id: c.geonameId,
-                            name: c.name,
-                            code: c.countryCode
-                        }))
-                        .sort((a: any, b: any) =>
-                            (a.name as string)
-                                .toLocaleLowerCase()
-                                .localeCompare(
-                                    (b.name as string).toLocaleLowerCase()
-                                )
-                        )
-                )
-            );
+        return this.http.get(`${this.geonameUrl}searchJSON`, { params }).pipe(
+            map((countries: any) =>
+                countries.geonames
+                    .map((c: any) => ({
+                        id: c.geonameId,
+                        name: c.name,
+                        code: c.countryCode
+                    }))
+                    .sort((a: any, b: any) =>
+                        (a.name as string)
+                            .toLocaleLowerCase()
+                            .localeCompare(
+                                (b.name as string).toLocaleLowerCase()
+                            )
+                    )
+            )
+        );
     }
 
     getCities(countryId: string): Observable<any[]> {
@@ -375,7 +374,7 @@ export class MapService {
             .set('style', 'SHORT')
             .set('name', this.transformExceptions(destName, featureCode));
         return this.http
-            .get('https://api.geonames.org/searchJSON', { params })
+            .get(`${this.geonameUrl}/searchJSON`, { params })
             .pipe(
                 map(
                     (dests: any) =>
@@ -397,7 +396,9 @@ export class MapService {
             .set('style', 'SHORT')
             .set('geonameId', destId);
         return this.http
-            .get('https://api.geonames.org/childrenJSON', { params })
+            .get(`${this.geonameUrl}/childrenJSON`, {
+                params
+            })
             .pipe(
                 map((wards: any) =>
                     wards.geonames
