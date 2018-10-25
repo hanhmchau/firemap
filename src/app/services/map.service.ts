@@ -34,7 +34,7 @@ export class MapService {
     private client: GoogleMapsClient;
     private addressCollectionRef: AngularFirestoreCollection<Address>;
     private lastQueriedId: string = null;
-    private geonameUrl = 'http://img.geonames.org/';
+    private geonameUrl = 'https://secure.geonames.org/';
 
     constructor(private http: HttpClient, private fb: AngularFirestore) {
         this.client = createClient({
