@@ -231,7 +231,7 @@ export class MapService {
             .set('featureCode', consts.GEONAME_LEVELS.COUNTRY)
             .set('style', 'SHORT');
         return this.http
-            .get('http://api.geonames.org/searchJSON', { params })
+            .get('https://api.geonames.org/searchJSON', { params })
             .pipe(
                 map((countries: any) =>
                     countries.geonames
@@ -375,7 +375,7 @@ export class MapService {
             .set('style', 'SHORT')
             .set('name', this.transformExceptions(destName, featureCode));
         return this.http
-            .get('http://api.geonames.org/searchJSON', { params })
+            .get('https://api.geonames.org/searchJSON', { params })
             .pipe(
                 map(
                     (dests: any) =>
@@ -397,7 +397,7 @@ export class MapService {
             .set('style', 'SHORT')
             .set('geonameId', destId);
         return this.http
-            .get('http://api.geonames.org/childrenJSON', { params })
+            .get('https://api.geonames.org/childrenJSON', { params })
             .pipe(
                 map((wards: any) =>
                     wards.geonames
