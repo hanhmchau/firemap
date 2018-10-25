@@ -19,3 +19,11 @@ agm-map {
     width: 50%;
     z-index: 2;
 }
+
+.card-flex {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1.25rem;
+}

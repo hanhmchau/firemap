@@ -85,12 +85,17 @@ export class SingleAddressComponent {
             lat: this.address.lat,
             lng: this.address.lng
         };
-        this.mapSubject = new BehaviorSubject<Map>({
+        const newMap = {
             lat: this.address.lat,
             lng: this.address.lng,
             zoom: 12
-        });
-        this.map$ = this.mapSubject.asObservable();
+        };
+        if (this.mapSubject) {
+            this.mapSubject.next(newMap);
+        } else {
+            this.mapSubject = new BehaviorSubject<Map>(newMap);
+            this.map$ = this.mapSubject.asObservable();
+        }
     }
 
     onAddressUpdated(address: Address) {
