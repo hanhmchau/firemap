@@ -7,12 +7,14 @@ import {
     Observable,
     Subject,
     Subscription,
-    forkJoin
+    forkJoin,
+    of
 } from 'rxjs';
 import Address from '../models/address';
 import Map from '../models/map';
 import Marker from '../models/marker';
 import { MapService } from './../services/map.service';
+import consts from '../../consts';
 
 @Component({
     selector: 'app-single-address',
@@ -98,19 +100,44 @@ export class SingleAddressComponent {
         }
     }
 
-    onAddressUpdated(address: Address) {
+    onAddressUpdated(info: any) {
+        const address: Address = info.address;
+        const latLng: LatLngLiteral = info.latLng;
+        const oldAddress = {
+            ...this.address
+        };
         this.address = { ...this.address, ...address };
-        forkJoin(
-            this.mapService.searchCountry(this.address.country),
-            this.mapService.searchCity(this.address.city),
-            this.mapService.searchDistrict(this.address.district),
-            this.mapService.searchWard(this.address.ward)
-        ).subscribe((values) => {
-            this.address.countryId = values[0];
-            this.address.cityId = values[1];
-            this.address.districtId = values[2];
-            this.address.wardId = values[3] || '';
-            this.fetchInitialOptions();
+        this.mapService.searchLatLng(latLng).subscribe((locations: any) => {
+            this.address.countryId = locations[consts.GEONAME_LEVELS.COUNTRY];
+            this.address.cityId = locations[consts.GEONAME_LEVELS.CITY];
+            forkJoin(
+                locations[consts.GEONAME_LEVELS.DISTRICT]
+                    ? of(locations[consts.GEONAME_LEVELS.DISTRICT])
+                    : this.mapService.searchDistrict(this.address.district),
+                locations[consts.GEONAME_LEVELS.WARD]
+                    ? of(locations[consts.GEONAME_LEVELS.WARD])
+                    : this.mapService.searchWard(this.address.ward)
+            ).subscribe((values: string[]) => {
+                this.address.districtId = values[0];
+                this.address.wardId = values[1] || '';
+                console.log(this.address.countryId, oldAddress.countryId);
+                console.log(this.address.cityId, oldAddress.cityId);
+                console.log(this.address.districtId, oldAddress.districtId);
+                const countryChanged =
+                    this.address.countryId.toString() !==
+                    oldAddress.countryId.toString();
+                const cityChanged =
+                    this.address.cityId.toString() !==
+                    oldAddress.cityId.toString();
+                const districtChanged =
+                    this.address.districtId.toString() !==
+                    oldAddress.districtId.toString();
+                this.fetchInitialOptions(
+                    countryChanged,
+                    cityChanged,
+                    districtChanged
+                );
+            });
         });
     }
 
@@ -223,11 +250,21 @@ export class SingleAddressComponent {
         this.refreshMap();
     }
 
-    fetchInitialOptions() {
+    fetchInitialOptions(
+        fetchCity: boolean = true,
+        fetchDistrict: boolean = true,
+        fetchWard: boolean = true
+    ) {
         forkJoin(
-            this.mapService.getCities(this.address.countryId),
-            this.mapService.getDistricts(this.address.cityId),
-            this.mapService.getWards(this.address.districtId)
+            fetchCity
+                ? this.mapService.getCities(this.address.countryId)
+                : of(this.cities),
+            fetchDistrict
+                ? this.mapService.getDistricts(this.address.cityId)
+                : of(this.districts),
+            fetchWard
+                ? this.mapService.getWards(this.address.districtId)
+                : of(this.wards)
         ).subscribe((values: any[]) => {
             this.cities = values[0];
             this.districts = values[1];
@@ -236,10 +273,8 @@ export class SingleAddressComponent {
     }
 
     onLoaded() {
-        this.mapService
-            .getNearby(this.address)
-            .subscribe(nearbyAddresses => {
-                this.nearbyAddresses = nearbyAddresses;
-            });
+        this.mapService.getNearby(this.address).subscribe(nearbyAddresses => {
+            this.nearbyAddresses = nearbyAddresses;
+        });
     }
 }
