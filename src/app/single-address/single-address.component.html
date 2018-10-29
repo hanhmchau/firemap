@@ -19,8 +19,6 @@
                     <select class="form-control" id="cities" name="city" [(ngModel)]="address.cityId" (ngModelChange)="onCityChanged($event)">
                         <option *ngFor="let city of cities" [value]="city.id">{{city.name}}</option>
                     </select>
-                    <!-- <input name="city" #city="ngModel" [ngClass]="{'form-control': true, 'is-invalid': (city && ward && district) && (trySaved || city.dirty || ward.dirty || district.dirty) && (!address.city && (!address.district || !address.ward))}"
-                        (blur)="refreshMap()" spellcheck="false" [(ngModel)]="address.city" placeholder="City"> -->
                 </div>
                 <div class="form-group col-lg-11" *ngIf="address.cityId && districts.length">
                     <label>District</label>
@@ -28,12 +26,8 @@
                         (ngModelChange)="onDistrictChanged($event)">
                         <option *ngFor="let district of districts" [value]="district.id">{{district.name}}</option>
                     </select>
-
-                    <!-- <input name="district" [ngClass]="{'form-control': true, 'is-invalid': (city && ward && district) && (trySaved || city.dirty || ward.dirty || district.dirty) && (!address.city && (!address.district || !address.ward))}"
-                        #district="ngModel" class="form-control" (blur)="refreshMap()" spellcheck="false" [(ngModel)]="address.district"
-                        placeholder="District"> -->
                 </div>
-                <div class="form-group col-lg-11" *ngIf="address.districtId && wards.length">
+                <div class="form-group col-lg-11" *ngIf="address.districtId">
                     <label>Ward</label>
                     <select class="form-control" id="wards" name="ward" [(ngModel)]="address.wardId" (ngModelChange)="onWardChanged($event)">
                         <option [value]="''" disabled hidden></option>

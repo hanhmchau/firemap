@@ -42,7 +42,7 @@ export class MapComponent {
     @Input()
     width: string;
     @Output()
-    onAddressUpdated: EventEmitter<Address> = new EventEmitter();
+    onAddressUpdated: EventEmitter<any> = new EventEmitter();
     @Output()
     onMarkerUpdated: EventEmitter<Marker> = new EventEmitter();
     @Output()
@@ -117,7 +117,13 @@ export class MapComponent {
             );
             parsedAddress.lat = lat;
             parsedAddress.lng = lng;
-            this.onAddressUpdated.emit(parsedAddress);
+            this.onAddressUpdated.emit({
+                address: parsedAddress,
+                latLng: {
+                    lat,
+                    lng
+                }
+            });
         }
     }
 
@@ -143,7 +149,13 @@ export class MapComponent {
         this.mapService
             .reverseGeocode(lat, lng)
             .subscribe((address: Address) => {
-                this.onAddressUpdated.emit(address);
+                this.onAddressUpdated.emit({
+                    address,
+                    latLng: {
+                        lat,
+                        lng
+                    }
+                });
             });
     }
     mapClicked($event: MouseEvent) {
