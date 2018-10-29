@@ -22,6 +22,8 @@ import consts from '../../consts';
 import Address from '../models/address';
 import Map from '../models/map';
 import Marker from '../models/marker';
+// tslint:disable-next-line:no-var-requires
+const parseXML = require('xml2js').parseString;
 
 @Injectable({
     providedIn: 'root'
@@ -270,6 +272,35 @@ export class MapService {
     searchWard(name: string): Observable<string> {
         return this.searchDestinations(name, consts.GEONAME_LEVELS.WARD);
     }
+    searchLatLng(latlng: LatLngLiteral): Observable<any> {
+        const params = new HttpParams()
+            .set('username', consts.GEONAME_USER)
+            .set('lat', latlng.lat.toString())
+            .set('lng', latlng.lng.toString());
+        const levels: string[] = this.getGeonameLevels();
+        return this.http
+            .get(`${this.geonameUrl}/extendedFindNearby`, {
+                params,
+                responseType: 'text'
+            })
+            .pipe(
+                switchMap((val: string) => {
+                    return Observable.create((observer: Observer<any>) => {
+                        parseXML(val, (err: any, dests: any) => {
+                            const locations: any[] = dests.geonames.geoname;
+                            const geolocations: any = {};
+                            locations.forEach(l => {
+                                const fcode = l.fcode[0];
+                                if (levels.indexOf(fcode) >= 0) {
+                                    geolocations[fcode] = l.geonameId[0];
+                                }
+                            });
+                            observer.next(geolocations);
+                        });
+                    });
+                })
+            );
+    }
 
     parseAddress(
         addressComponents:
@@ -422,6 +453,20 @@ export class MapService {
         ) {
             return 'Quận ' + destName;
         }
+        if (featureCode === consts.GEONAME_LEVELS.DISTRICT && (destName.indexOf('Thủ Đức') >= 0)) {
+            return 'Thu Duc';
+        }
         return destName;
+    }
+
+    private getGeonameLevels(): string[] {
+        const levels: string[] = [];
+        const geonames: any = consts.GEONAME_LEVELS;
+        for (const key in geonames) {
+            if (geonames.hasOwnProperty(key)) {
+                levels.push(geonames[key]);
+            }
+        }
+        return levels;
     }
 }
