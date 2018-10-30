@@ -32,6 +32,7 @@
                     <select class="form-control" id="wards" name="ward" [(ngModel)]="address.wardId" (ngModelChange)="onWardChanged($event)">
                         <option [value]="''" disabled hidden></option>
                         <option *ngFor="let ward of wards" [value]="ward.id">{{ward.name}}</option>
+                        <option *ngIf="wards.length === 0" disabled>No results</option>
                     </select>
                 </div>
                 <div class="form-group col-lg-11">
