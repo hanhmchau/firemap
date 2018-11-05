@@ -395,7 +395,7 @@ export class MapService {
         properties: string[],
         shortName: boolean = false
     ): string {
-        const comp = (components as any[])
+        let comp = (components as any[])
             .filter(this.getFilter(properties))
             .map(
                 (x: AddressComponent) =>
@@ -424,23 +424,28 @@ export class MapService {
         }
 
         if (properties.indexOf('sublocality_level_1') >= 0) {
-            if (comp && comp.indexOf('Phường') < 0) {
+            if (!comp) {
+                // ward
+                const bits = formattedAddress.split(',').map(bit => bit.trim());
+
+                const filteredBits = bits.filter(
+                    bit => bit.indexOf('Phường') >= 0
+                );
+                if (filteredBits.length) {
+                    comp = filteredBits[0];
+                } else {
+                    comp = bits[bits.length - 1 - 3];
+                }
+            }
+
+            if (comp && comp.indexOf('Phường') < 0 && comp.indexOf('Xã') < 0) {
                 return 'Phường ' + comp;
             }
 
             if (comp && comp.indexOf('P. ') === 0) {
                 return 'Phường ' + comp.replace('P. ', '');
             }
-
-            // ward
-            const bits = formattedAddress.split(',').map(bit => bit.trim());
-
-            const filteredBits = bits.filter(bit => bit.indexOf('Phường') >= 0);
-            if (filteredBits.length) {
-                return filteredBits[0];
-            }
-
-            return bits[bits.length - 1 - 3] || '';
+            return comp || '';
         }
 
         if (properties.indexOf('administrative_area_level_1') >= 0) {
@@ -448,14 +453,34 @@ export class MapService {
             if (comp && comp === 'Hồ Chí Minh') {
                 return 'Thành Phố Hồ Chí Minh';
             }
+            if (
+                comp &&
+                comp.indexOf('Tỉnh') < 0 &&
+                comp.toLowerCase().indexOf('Thành Phố'.toLowerCase()) < 0
+            ) {
+                return 'Tỉnh ' + comp;
+            }
+            if (comp === 'Hau Giang') {
+                return 'Tỉnh Hậu Giang';
+            }
         }
 
         if (properties.indexOf('administrative_area_level_2') >= 0) {
             // district
-            if (comp && comp.indexOf('Quận') < 0) {
+            if (comp.indexOf('Nhuan') >= 0) {
+                return 'Quận Phú Nhuận';
+            }
+            if (
+                comp &&
+                comp.indexOf('Quận') < 0 &&
+                comp.indexOf('Huyện') < 0
+            ) {
                 return 'Quận ' + comp;
             }
-        }
+            if (comp.indexOf('12') >= 0) {
+                return 'Quận Mười Hai';
+            }
+    }
 
         return comp;
     }
@@ -513,6 +538,7 @@ export class MapService {
                 params
             })
             .pipe(
+                tap(console.log),
                 map((wards: any) =>
                     wards.geonames
                         .map((c: any) =>
@@ -530,7 +556,7 @@ export class MapService {
     private normalize(name: string, featureCode: string): string {
         switch (featureCode) {
             case consts.GEONAME_LEVELS.WARD:
-                if (name && name.indexOf('Phường') < 0) {
+                if (name && name.indexOf('Phường') < 0 && name.indexOf('Xã') < 0) {
                     return 'Phường ' + name;
                 }
                 break;

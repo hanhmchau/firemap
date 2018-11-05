@@ -252,14 +252,10 @@ export class SingleAddressComponent {
         this.address.city = this.cities.filter(
             city => city === cityId
         )[0];
-        this.mapService.getDistricts(cityId).subscribe(districts => {
-            this.districts = districts;
-            this.wards = [];
-            delete this.address.district;
-            delete this.address.districtId;
-            this.fetchWards = true;
-            this.fetchDistricts = true;
-        });
+        delete this.address.district;
+        delete this.address.ward;
+        this.fetchWards = true;
+        this.fetchDistricts = true;
         this.refreshMap();
     }
 
@@ -267,12 +263,8 @@ export class SingleAddressComponent {
         this.address.district = this.districts.filter(
             d => d === districtId
         )[0];
-        this.mapService.getWards(districtId).subscribe(wards => {
-            this.wards = wards;
-            this.address.ward = '';
-            this.address.wardId = '';
-            this.fetchDistricts = true;
-        });
+        this.address.ward = '';
+        this.fetchDistricts = true;
         this.refreshMap();
     }
 
