@@ -113,7 +113,8 @@ export class MapComponent {
             this.updateMarker(lat, lng);
             this.updateMap(lat, lng, 17);
             const parsedAddress = this.mapService.parseAddress(
-                place.address_components
+                place.address_components,
+                place.formatted_address
             );
             parsedAddress.lat = lat;
             parsedAddress.lng = lng;

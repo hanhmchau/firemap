@@ -83,8 +83,10 @@ export class MapService {
                     const results = value.results as GeocodingResult[];
                     const firstResult = results[0];
                     const parsedAddress = this.parseAddress(
-                        firstResult.address_components
+                        firstResult.address_components,
+                        firstResult.formatted_address
                     );
+                    console.log(parsedAddress);
                     parsedAddress.lat = lat;
                     parsedAddress.lng = lng;
                     return of(parsedAddress);
@@ -305,20 +307,24 @@ export class MapService {
     parseAddress(
         addressComponents:
             | AddressComponent[]
-            | google.maps.GeocoderAddressComponent[]
+            | google.maps.GeocoderAddressComponent[],
+        formattedAddress: string
     ) {
         const streetNumber = this.parseAddressComponent(
             addressComponents,
+            formattedAddress,
             'street_number',
             'premise'
         );
         const streetName = this.parseAddressComponent(
             addressComponents,
+            formattedAddress,
             'route',
             'sublocality_level_3'
         );
         const ward = this.parseAddressComponent(
             addressComponents,
+            formattedAddress,
             'administrative_area_level_3',
             'sublocality_level_3',
             'sublocality_level_2',
@@ -326,22 +332,26 @@ export class MapService {
         );
         const district = this.parseAddressComponent(
             addressComponents,
+            formattedAddress,
             'administrative_area_level_2',
             'locality'
         );
         const city = this.parseAddressComponent(
             addressComponents,
+            formattedAddress,
             'administrative_area_level_1'
         );
         const country = this.parseAddressComponent(
             addressComponents,
+            formattedAddress,
             'country'
         );
         const countryCode = this.parseAddressComponentShortName(
             addressComponents,
+            formattedAddress,
             'country'
         );
-        const street = `${streetNumber} ${streetName}`.trim();
+        const street = `${streetNumber || ''} ${streetName || ''}`.trim();
         const address: Address = {
             street,
             ward,
@@ -355,24 +365,99 @@ export class MapService {
 
     private parseAddressComponentShortName(
         components: AddressComponent[] | google.maps.GeocoderAddressComponent[],
+        formattedAddress: string,
         ...properties: string[]
     ): string {
-        return (
-            (components as any[])
-                .filter(this.getFilter(properties))
-                .map((x: AddressComponent) => x.short_name)[0] || ''
+        return this.parseComponent(
+            components,
+            formattedAddress,
+            properties,
+            true
         );
     }
 
     private parseAddressComponent(
         components: AddressComponent[] | google.maps.GeocoderAddressComponent[],
+        formattedAddress: string,
         ...properties: string[]
     ): string {
-        return (
-            (components as any[])
-                .filter(this.getFilter(properties))
-                .map((x: AddressComponent) => x.long_name)[0] || ''
+        return this.parseComponent(
+            components,
+            formattedAddress,
+            properties,
+            false
         );
+    }
+
+    private parseComponent(
+        components: AddressComponent[] | google.maps.GeocoderAddressComponent[],
+        formattedAddress: string,
+        properties: string[],
+        shortName: boolean = false
+    ): string {
+        const comp = (components as any[])
+            .filter(this.getFilter(properties))
+            .map(
+                (x: AddressComponent) =>
+                    shortName ? x.short_name : x.long_name
+            )[0];
+
+        if (properties.indexOf('route') >= 0) {
+            if (!comp) {
+                const bits = formattedAddress.split(',').map(bit => bit.trim());
+                const indexOfWard = bits.indexOf(
+                    bits.filter(
+                        bit =>
+                            bit.indexOf('Phường') >= 0 ||
+                            bit.indexOf('Quận') >= 0 ||
+                            bit.indexOf('P. ') >= 0
+                    )[0]
+                );
+                if (indexOfWard >= 0) {
+                    return bits
+                        .slice(0, indexOfWard)
+                        .filter(bit => !!bit)
+                        .join(', ');
+                }
+                return '';
+            }
+        }
+
+        if (properties.indexOf('sublocality_level_1') >= 0) {
+            if (comp && comp.indexOf('Phường') < 0) {
+                return 'Phường ' + comp;
+            }
+
+            if (comp && comp.indexOf('P. ') === 0) {
+                return 'Phường ' + comp.replace('P. ', '');
+            }
+
+            // ward
+            const bits = formattedAddress.split(',').map(bit => bit.trim());
+
+            const filteredBits = bits.filter(bit => bit.indexOf('Phường') >= 0);
+            if (filteredBits.length) {
+                return filteredBits[0];
+            }
+
+            return bits[bits.length - 1 - 3] || '';
+        }
+
+        if (properties.indexOf('administrative_area_level_1') >= 0) {
+            // city
+            if (comp && comp === 'Hồ Chí Minh') {
+                return 'Thành Phố Hồ Chí Minh';
+            }
+        }
+
+        if (properties.indexOf('administrative_area_level_2') >= 0) {
+            // district
+            if (comp && comp.indexOf('Quận') < 0) {
+                return 'Quận ' + comp;
+            }
+        }
+
+        return comp;
     }
 
     private getFilter(properties: any[]) {
@@ -430,19 +515,60 @@ export class MapService {
             .pipe(
                 map((wards: any) =>
                     wards.geonames
-                        .map((c: any) => ({
-                            id: c.geonameId,
-                            name: c.toponymName
-                        }))
-                        .sort((a: any, b: any) =>
-                            (a.name as string)
+                        .map((c: any) =>
+                            this.normalize(c.toponymName, featureCode)
+                        )
+                        .sort((a: string, b: string) =>
+                            a
                                 .toLocaleLowerCase()
-                                .localeCompare(
-                                    (b.name as string).toLocaleLowerCase()
-                                )
+                                .localeCompare(b.toLocaleLowerCase())
                         )
                 )
             );
+    }
+
+    private normalize(name: string, featureCode: string): string {
+        switch (featureCode) {
+            case consts.GEONAME_LEVELS.WARD:
+                if (name && name.indexOf('Phường') < 0) {
+                    return 'Phường ' + name;
+                }
+                break;
+            case consts.GEONAME_LEVELS.CITY:
+                if (
+                    name &&
+                    (name === 'Hồ Chí Minh' || name.indexOf('Ho Chi Minh')) >= 0
+                ) {
+                    return 'Thành Phố Hồ Chí Minh';
+                }
+                if (
+                    name &&
+                    name.indexOf('Tỉnh') < 0 &&
+                    name.toLowerCase().indexOf('Thành Phố'.toLowerCase()) < 0
+                ) {
+                    return 'Tỉnh ' + name;
+                }
+                if (name === 'Hau Giang') {
+                    return 'Tỉnh Hậu Giang';
+                }
+                break;
+            case consts.GEONAME_LEVELS.DISTRICT:
+                if (name.indexOf('Nhuan') >= 0) {
+                    return 'Quận Phú Nhuận';
+                }
+                if (
+                    name &&
+                    name.indexOf('Quận') < 0 &&
+                    name.indexOf('Huyện') < 0
+                ) {
+                    return 'Quận ' + name;
+                }
+                if (name.indexOf('12') >= 0) {
+                    return 'Quận Mười Hai';
+                }
+                break;
+        }
+        return name;
     }
 
     private transformExceptions(destName: string, featureCode: string): string {
@@ -453,7 +579,10 @@ export class MapService {
         ) {
             return 'Quận ' + destName;
         }
-        if (featureCode === consts.GEONAME_LEVELS.DISTRICT && (destName.indexOf('Thủ Đức') >= 0)) {
+        if (
+            featureCode === consts.GEONAME_LEVELS.DISTRICT &&
+            destName.indexOf('Thủ Đức') >= 0
+        ) {
             return 'Thu Duc';
         }
         return destName;

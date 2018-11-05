@@ -1,3 +1,4 @@
+import { map, switchMap } from 'rxjs/operators';
 import { LatLngLiteral } from '@agm/core';
 import { Component, Input } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -38,6 +39,9 @@ export class SingleAddressComponent {
     private nearbyAddresses: any[] = [];
     private routeSubscription: Subscription;
     private savedId: string;
+    private fetchWards: boolean = true;
+    private fetchDistricts: boolean = true;
+    private fetchCities: boolean = true;
 
     constructor(
         private mapService: MapService,
@@ -71,7 +75,8 @@ export class SingleAddressComponent {
                     this.address = address;
                     this.initialize();
                     this.savedId = id.slice();
-                    this.fetchInitialOptions();
+                    // this.fetchInitialOptions();
+                    this.populateSelects(this.address);
                 } else {
                     this.router.navigate(['/not-found']);
                 }
@@ -100,45 +105,68 @@ export class SingleAddressComponent {
         }
     }
 
+    populateSelects(address: Address) {
+        this.cities = [address.city];
+        this.districts = [address.district];
+        this.wards = [address.ward];
+    }
+
     onAddressUpdated(info: any) {
+        const oldAddress = this.address;
         const address: Address = info.address;
-        const latLng: LatLngLiteral = info.latLng;
-        const oldAddress = {
-            ...this.address
+        this.populateSelects(address);
+        this.address = {
+            ...this.address,
+            ...address
         };
-        this.address = { ...this.address, ...address };
-        this.mapService.searchLatLng(latLng).subscribe((locations: any) => {
-            this.address.countryId = locations[consts.GEONAME_LEVELS.COUNTRY];
-            this.address.cityId = locations[consts.GEONAME_LEVELS.CITY];
-            forkJoin(
-                locations[consts.GEONAME_LEVELS.DISTRICT]
-                    ? of(locations[consts.GEONAME_LEVELS.DISTRICT])
-                    : this.mapService.searchDistrict(this.address.district),
-                locations[consts.GEONAME_LEVELS.WARD]
-                    ? of(locations[consts.GEONAME_LEVELS.WARD])
-                    : this.mapService.searchWard(this.address.ward)
-            ).subscribe((values: string[]) => {
-                this.address.districtId = values[0];
-                this.address.wardId = values[1] || '';
-                console.log(this.address.countryId, oldAddress.countryId);
-                console.log(this.address.cityId, oldAddress.cityId);
-                console.log(this.address.districtId, oldAddress.districtId);
-                const countryChanged =
-                    this.address.countryId.toString() !==
-                    oldAddress.countryId.toString();
-                const cityChanged =
-                    this.address.cityId.toString() !==
-                    oldAddress.cityId.toString();
-                const districtChanged =
-                    this.address.districtId.toString() !==
-                    oldAddress.districtId.toString();
-                this.fetchInitialOptions(
-                    countryChanged,
-                    cityChanged,
-                    districtChanged
-                );
+        this.fetchWards = true;
+        if (oldAddress.district !== address.district) {
+            this.fetchWards = true;
+        }
+        if (oldAddress.city !== address.city) {
+            this.fetchDistricts = true;
+        }
+        if (oldAddress.country !== address.country) {
+            this.fetchCities = true;
+        }
+    }
+
+    loadWards() {
+        if (this.fetchWards) {
+            this.mapService
+            .searchDistrict(this.address.district)
+            .pipe(switchMap(geonameId => this.mapService.getWards(geonameId)))
+            .subscribe(wards => {
+                if (wards.length) {
+                    this.fetchWards = false;
+                    this.wards = wards;
+                }
             });
-        });
+        }
+    }
+
+    loadDistricts() {
+        if (this.fetchDistricts) {
+            this.mapService
+            .searchCity(this.address.city)
+            .pipe(switchMap(geonameId => this.mapService.getDistricts(geonameId)))
+            .subscribe(districts => {
+                this.fetchDistricts = false;
+                this.districts = districts;
+            });
+        }
+    }
+
+    loadCities() {
+        if (this.fetchCities) {
+            this.mapService
+            .searchCountry(this.address.country)
+            .pipe(switchMap(geonameId => this.mapService.getCities(geonameId)))
+            .subscribe(cities => {
+                this.fetchCities = false;
+                this.cities = cities;
+            });
+        }
     }
 
     onMapUpdated(map: Map) {
@@ -213,39 +241,45 @@ export class SingleAddressComponent {
             delete this.address.districtId;
             delete this.address.ward;
             delete this.address.wardId;
+            this.fetchCities = true;
+            this.fetchWards = true;
+            this.fetchDistricts = true;
         });
         this.refreshMap();
     }
 
     onCityChanged(cityId: string) {
         this.address.city = this.cities.filter(
-            city => city.id === parseInt(cityId, 10)
-        )[0].name;
+            city => city === cityId
+        )[0];
         this.mapService.getDistricts(cityId).subscribe(districts => {
             this.districts = districts;
             this.wards = [];
             delete this.address.district;
             delete this.address.districtId;
+            this.fetchWards = true;
+            this.fetchDistricts = true;
         });
         this.refreshMap();
     }
 
     onDistrictChanged(districtId: string) {
         this.address.district = this.districts.filter(
-            d => d.id === parseInt(districtId, 10)
-        )[0].name;
+            d => d === districtId
+        )[0];
         this.mapService.getWards(districtId).subscribe(wards => {
             this.wards = wards;
             this.address.ward = '';
             this.address.wardId = '';
+            this.fetchDistricts = true;
         });
         this.refreshMap();
     }
 
     onWardChanged(wardId: string) {
         this.address.ward = this.wards.filter(
-            ward => ward.id === parseInt(wardId, 10)
-        )[0].name;
+            ward => ward === wardId
+        )[0];
         this.address.wardId = wardId;
         this.refreshMap();
     }
