@@ -14,20 +14,20 @@
                         <option *ngFor="let country of countries" [value]="country.code">{{country.name}}</option>
                     </select>
                 </div>
-                <div class="form-group col-lg-11" *ngIf="address.countryCode">
+                <div class="form-group col-lg-11">
                     <label>City</label>
-                    <select class="form-control" id="cities" name="city" (click)="loadCities()" [(ngModel)]="address.city" (ngModelChange)="onCityChanged($event)">
+                    <select #citySelect class="form-control" id="cities" name="city" (click)="loadCities()" [(ngModel)]="address.city" (ngModelChange)="onCityChanged($event)">
                         <option *ngFor="let city of cities" [value]="city">{{city}}</option>
                     </select>
                 </div>
-                <div class="form-group col-lg-11" *ngIf="address.city">
+                <div class="form-group col-lg-11">
                     <label>District</label>
                     <select class="form-control" id="districts" name="district" (click)="loadDistricts()" [(ngModel)]="address.district"
                         (ngModelChange)="onDistrictChanged($event)">
                         <option *ngFor="let district of districts" [value]="district">{{district}}</option>
                     </select>
                 </div>
-                <div class="form-group col-lg-11" *ngIf="address.district">
+                <div class="form-group col-lg-11">
                     <label>Ward</label>
                     <select class="form-control" id="wards" name="ward" (click)="loadWards()" [(ngModel)]="address.ward" (ngModelChange)="onWardChanged($event)">
                         <option *ngFor="let ward of wards" [value]="ward">{{ward}}</option>
@@ -56,7 +56,7 @@
             </form>
         </div>
         <div class="col-md-6">
-            <div class="position-relative mt-4">
+            <div class="position-relative">
                 <app-map *ngIf="map$" (onAddressUpdated)="onAddressUpdated($event)" (onLoaded)="onLoaded($event)"
                     (onMapUpdated)="onMapUpdated($event)" (onMarkerUpdated)="onMarkerUpdated($event)" [marker]="marker"
                     [map$]="map$" [address]="address"></app-map>

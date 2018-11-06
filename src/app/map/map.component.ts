@@ -68,6 +68,7 @@ export class MapComponent {
                     radius: 25
                 });
 
+                this.onLoaded.emit(true);
                 this.initAutocomplete(bounds);
             });
         });
@@ -86,7 +87,6 @@ export class MapComponent {
                     });
                 });
             }
-            this.onLoaded.emit(true);
         });
         this.initializeAutocomplete();
     }
