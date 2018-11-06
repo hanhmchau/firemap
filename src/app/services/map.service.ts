@@ -46,25 +46,30 @@ export class MapService {
     }
 
     geocode(address: string): Observable<LatLngLiteral | undefined> {
-        const key = consts.MAP_API;
-        const params = new HttpParams().set('key', key).set('address', address);
-        const headers = new HttpHeaders();
-        return this.http
-            .get('https://maps.googleapis.com/maps/api/geocode/json', {
-                params,
-                headers
-            })
-            .pipe(
-                switchMap((value: any) => {
-                    const results = value.results as GeocodingResult[];
-                    const firstResult = results[0];
-                    if (firstResult) {
-                        const latLng = firstResult.geometry.location;
-                        return of(latLng);
-                    }
-                    return of(undefined);
+        if (!address) {
+            const key = consts.MAP_API;
+            const params = new HttpParams()
+                .set('key', key)
+                .set('address', address);
+            const headers = new HttpHeaders();
+            return this.http
+                .get('https://maps.googleapis.com/maps/api/geocode/json', {
+                    params,
+                    headers
                 })
-            );
+                .pipe(
+                    switchMap((value: any) => {
+                        const results = value.results as GeocodingResult[];
+                        const firstResult = results[0];
+                        if (firstResult) {
+                            const latLng = firstResult.geometry.location;
+                            return of(latLng);
+                        }
+                        return of(undefined);
+                    })
+                );
+        }
+        return of(undefined);
     }
 
     reverseGeocode(lat: number, lng: number): Observable<Address> {

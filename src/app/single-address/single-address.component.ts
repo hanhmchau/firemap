@@ -146,10 +146,12 @@ export class SingleAddressComponent {
     }
 
     loadDistricts() {
-        this.mapService.loadDistricts(this.address.city).subscribe(districts => {
-            this.fetchDistricts = false;
-            this.districts = districts;
-        });
+        this.mapService
+            .loadDistricts(this.address.city)
+            .subscribe(districts => {
+                this.fetchDistricts = false;
+                this.districts = districts;
+            });
     }
 
     loadCities() {
@@ -224,21 +226,20 @@ export class SingleAddressComponent {
     }
 
     onCountryChanged(countryCode: string) {
-        const countryId = this.countries.filter(c => c.code === countryCode)[0]
-            .id;
-        this.address.countryId = countryId;
-        this.mapService.getCities(countryId).subscribe(cities => {
-            this.cities = cities;
-            this.districts = [];
-            this.wards = [];
-            delete this.address.district;
-            delete this.address.districtId;
-            delete this.address.ward;
-            delete this.address.wardId;
-            this.fetchCities = true;
-            this.fetchWards = true;
-            this.fetchDistricts = true;
-        });
+        const countryName = this.countries.filter(c => c.code === countryCode)[0]
+            .name;
+        this.address.countryCode = countryCode;
+        this.address.country = countryName;
+        this.cities = [];
+        this.districts = [];
+        this.wards = [];
+        delete this.address.district;
+        delete this.address.districtId;
+        delete this.address.ward;
+        delete this.address.wardId;
+        this.fetchCities = true;
+        this.fetchWards = true;
+        this.fetchDistricts = true;
         this.refreshMap();
     }
 
