@@ -505,6 +505,15 @@ export class MapService {
             }
             if (
                 comp &&
+                (comp.indexOf('Hà Nội') >= 0 ||
+                    comp.indexOf('Đà Nẵng') >= 0 ||
+                    comp.indexOf('Cần Thơ') >= 0 ||
+                    comp.indexOf('Hải Phòng') >= 0)
+            ) {
+                return 'Thành Phố ' + comp;
+            }
+            if (
+                comp &&
                 comp.indexOf('Tỉnh') < 0 &&
                 comp.toLowerCase().indexOf('Thành Phố'.toLowerCase()) < 0
             ) {
