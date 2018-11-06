@@ -27,7 +27,7 @@
                         <option *ngFor="let district of districts" [value]="district">{{district}}</option>
                     </select>
                 </div>
-                <div class="form-group col-lg-11" *ngIf="address.districtId">
+                <div class="form-group col-lg-11" *ngIf="address.district">
                     <label>Ward</label>
                     <select class="form-control" id="wards" name="ward" (click)="loadWards()" [(ngModel)]="address.ward" (ngModelChange)="onWardChanged($event)">
                         <option *ngFor="let ward of wards" [value]="ward">{{ward}}</option>

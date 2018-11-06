@@ -113,12 +113,15 @@ export class SingleAddressComponent {
 
     onAddressUpdated(info: any) {
         const oldAddress = this.address;
+        const latLng: LatLngLiteral = info.latLng;
         const address: Address = info.address;
         this.populateSelects(address);
         this.address = {
             ...this.address,
-            ...address
+            ...address,
+            ...latLng
         };
+        console.log(this.address);
         this.fetchWards = true;
         if (oldAddress.district !== address.district) {
             this.fetchWards = true;
@@ -170,6 +173,7 @@ export class SingleAddressComponent {
     }
 
     onMapUpdated(map: Map) {
+        console.log('nexting...', map)
         this.mapSubject.next(map);
     }
 
@@ -218,7 +222,9 @@ export class SingleAddressComponent {
                 });
             } else {
                 this.address.id = this.savedId;
-                this.mapService.update(this.address).subscribe();
+                this.mapService.update(this.address).subscribe(() => {
+                    this.router.navigate(['/']);
+                });
             }
         }
     }
@@ -264,7 +270,7 @@ export class SingleAddressComponent {
             d => d === districtId
         )[0];
         this.address.ward = '';
-        this.fetchDistricts = true;
+        this.fetchWards = true;
         this.refreshMap();
     }
 

@@ -70,7 +70,6 @@ export class MapComponent {
 
                 this.initAutocomplete(bounds);
             });
-            this.onLoaded.emit(true);
         });
     }
 
@@ -87,8 +86,9 @@ export class MapComponent {
                     });
                 });
             }
-            this.initializeAutocomplete();
+            this.onLoaded.emit(true);
         });
+        this.initializeAutocomplete();
     }
 
     initAutocomplete(bounds: google.maps.Circle) {

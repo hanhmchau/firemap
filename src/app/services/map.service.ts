@@ -86,7 +86,6 @@ export class MapService {
                         firstResult.address_components,
                         firstResult.formatted_address
                     );
-                    console.log(parsedAddress);
                     parsedAddress.lat = lat;
                     parsedAddress.lng = lng;
                     return of(parsedAddress);
@@ -470,17 +469,19 @@ export class MapService {
             if (comp.indexOf('Nhuan') >= 0) {
                 return 'Quận Phú Nhuận';
             }
-            if (
-                comp &&
-                comp.indexOf('Quận') < 0 &&
-                comp.indexOf('Huyện') < 0
-            ) {
+            if (comp && comp.indexOf('Quận') < 0 && comp.indexOf('Huyện') < 0) {
                 return 'Quận ' + comp;
             }
-            if (comp.indexOf('12') >= 0) {
-                return 'Quận Mười Hai';
+            if (/\d/.test(comp)) {
+                try {
+                    const num = parseInt(comp.split(' ')[1].trim(), 10);
+                    console.log(num);
+                    return 'Quận ' + consts.NUMBERS[num - 1];
+                } catch (e) {
+                    return comp;
+                }
             }
-    }
+        }
 
         return comp;
     }
@@ -538,7 +539,6 @@ export class MapService {
                 params
             })
             .pipe(
-                tap(console.log),
                 map((wards: any) =>
                     wards.geonames
                         .map((c: any) =>
@@ -556,7 +556,11 @@ export class MapService {
     private normalize(name: string, featureCode: string): string {
         switch (featureCode) {
             case consts.GEONAME_LEVELS.WARD:
-                if (name && name.indexOf('Phường') < 0 && name.indexOf('Xã') < 0) {
+                if (
+                    name &&
+                    name.indexOf('Phường') < 0 &&
+                    name.indexOf('Xã') < 0
+                ) {
                     return 'Phường ' + name;
                 }
                 break;
@@ -589,8 +593,13 @@ export class MapService {
                 ) {
                     return 'Quận ' + name;
                 }
-                if (name.indexOf('12') >= 0) {
-                    return 'Quận Mười Hai';
+                if (/\d/.test(name)) {
+                    try {
+                        const num = parseInt(name.split(' ')[0].trim(), 10);
+                        return 'Quận ' + consts.NUMBERS[num - 1];
+                    } catch (e) {
+                        return name;
+                    }
                 }
                 break;
         }
@@ -598,18 +607,21 @@ export class MapService {
     }
 
     private transformExceptions(destName: string, featureCode: string): string {
-        if (
-            featureCode === consts.GEONAME_LEVELS.DISTRICT &&
-            (destName.indexOf('Tân Bình') >= 0 ||
-                destName.indexOf('Bình Thạnh') >= 0)
-        ) {
-            return 'Quận ' + destName;
-        }
-        if (
-            featureCode === consts.GEONAME_LEVELS.DISTRICT &&
-            destName.indexOf('Thủ Đức') >= 0
-        ) {
-            return 'Thu Duc';
+        if (featureCode === consts.GEONAME_LEVELS.DISTRICT) {
+            if (
+                destName.indexOf('Tân Bình') >= 0 ||
+                destName.indexOf('Bình Thạnh') >= 0
+            ) {
+                return 'Quận ' + destName;
+            }
+
+            if (destName.indexOf('Thủ Đức') >= 0) {
+                return 'Thu Duc';
+            }
+
+            if (destName.indexOf('Quận Ba') >= 0) {
+                return 'Quận 3';
+            }
         }
         return destName;
     }

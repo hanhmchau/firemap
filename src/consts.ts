@@ -14,6 +14,10 @@ const consts = {
         COUNTRY: 'PCLI',
         DISTRICT: 'ADM2',
         WARD: 'ADM3'
+    },
+    NUMBERS: ['Một', 'Hai', 'Ba', 'Bốn', 'Năm', 'Sáu', 'Bảy', 'Tám', 'Chín', 'Mười', 'Mười Một', 'Mười Hai'],
+    GEONAME_ID: {
+        HO_CHI_MINH_CITY: 1580578
     }
 };
 
