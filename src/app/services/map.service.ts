@@ -17,7 +17,7 @@ import {
     LatLngLiteral
 } from '@google/maps';
 import { Observable, Observer, of, Subject } from 'rxjs';
-import { map, switchMap, tap, take } from 'rxjs/operators';
+import { map, switchMap, tap, take, count } from 'rxjs/operators';
 import consts from '../../consts';
 import Address from '../models/address';
 import Map from '../models/map';
@@ -221,12 +221,16 @@ export class MapService {
                     }
                 );
             } catch (e) {
-                console.warn(e);
+                return;
             }
         });
     }
 
     getCountries(): Observable<any[]> {
+        const cached = localStorage.getItem(consts.CACHE.COUNTRIES);
+        if (cached) {
+            return of(JSON.parse(cached));
+        }
         const params = new HttpParams()
             .set('username', consts.GEONAME_USER)
             .set('featureCode', consts.GEONAME_LEVELS.COUNTRY)
@@ -246,7 +250,49 @@ export class MapService {
                                 (b.name as string).toLocaleLowerCase()
                             )
                     )
-            )
+            ),
+            tap(countries => {
+                localStorage.setItem(
+                    consts.CACHE.COUNTRIES,
+                    JSON.stringify(countries)
+                );
+            })
+        );
+    }
+
+    loadCities(name: string): Observable<any[]> {
+        const key = name + '_' + consts.GEONAME_LEVELS.COUNTRY;
+        const cached = localStorage.getItem(key);
+        if (cached) {
+            return of(JSON.parse(cached));
+        }
+        return this.searchCountry(name).pipe(
+            switchMap(countryId => this.getCities(countryId)),
+            tap(dests => localStorage.setItem(key, JSON.stringify(dests)))
+        );
+    }
+
+    loadWards(name: string): Observable<any[]> {
+        const key = name + '_' + consts.GEONAME_LEVELS.DISTRICT;
+        const cached = localStorage.getItem(key);
+        if (cached) {
+            return of(JSON.parse(cached));
+        }
+        return this.searchDistrict(name).pipe(
+            switchMap(id => this.getWards(id)),
+            tap(dests => localStorage.setItem(key, JSON.stringify(dests)))
+        );
+    }
+
+    loadDistricts(name: string): Observable<any[]> {
+        const key = name + '_' + consts.GEONAME_LEVELS.CITY;
+        const cached = localStorage.getItem(key);
+        if (cached) {
+            return of(JSON.parse(cached));
+        }
+        return this.searchCity(name).pipe(
+            switchMap(id => this.getDistricts(id)),
+            tap(dests => localStorage.setItem(key, JSON.stringify(dests)))
         );
     }
 
@@ -469,7 +515,13 @@ export class MapService {
             if (comp.indexOf('Nhuan') >= 0) {
                 return 'Quận Phú Nhuận';
             }
-            if (comp && comp.indexOf('Quận') < 0 && comp.indexOf('Huyện') < 0) {
+            if (
+                comp &&
+                comp.indexOf('Thành Phố') &&
+                comp.indexOf('Quận') < 0 &&
+                comp.indexOf('Huyện') < 0 &&
+                comp.indexOf('Thị Xã') < 0
+            ) {
                 return 'Quận ' + comp;
             }
             if (/\d/.test(comp)) {
@@ -554,42 +606,46 @@ export class MapService {
     }
 
     private normalize(name: string, featureCode: string): string {
+        const lower = name.toLowerCase();
         switch (featureCode) {
             case consts.GEONAME_LEVELS.WARD:
                 if (
-                    name &&
-                    name.indexOf('Phường') < 0 &&
-                    name.indexOf('Xã') < 0
+                    lower &&
+                    lower.indexOf('phường') < 0 &&
+                    lower.indexOf('xã') < 0
                 ) {
                     return 'Phường ' + name;
                 }
                 break;
             case consts.GEONAME_LEVELS.CITY:
                 if (
-                    name &&
-                    (name === 'Hồ Chí Minh' || name.indexOf('Ho Chi Minh')) >= 0
+                    lower &&
+                    (lower === 'Hồ Chí Minh'.toLowerCase() ||
+                        lower.indexOf('Ho Chi Minh'.toLowerCase())) >= 0
                 ) {
                     return 'Thành Phố Hồ Chí Minh';
                 }
                 if (
-                    name &&
-                    name.indexOf('Tỉnh') < 0 &&
-                    name.toLowerCase().indexOf('Thành Phố'.toLowerCase()) < 0
+                    lower &&
+                    lower.indexOf('Tỉnh'.toLowerCase()) < 0 &&
+                    lower.toLowerCase().indexOf('Thành Phố'.toLowerCase()) < 0
                 ) {
                     return 'Tỉnh ' + name;
                 }
-                if (name === 'Hau Giang') {
+                if (lower === 'Hau Giang'.toLowerCase()) {
                     return 'Tỉnh Hậu Giang';
                 }
                 break;
             case consts.GEONAME_LEVELS.DISTRICT:
-                if (name.indexOf('Nhuan') >= 0) {
+                if (lower.indexOf('Nhuan'.toLowerCase()) >= 0) {
                     return 'Quận Phú Nhuận';
                 }
                 if (
-                    name &&
-                    name.indexOf('Quận') < 0 &&
-                    name.indexOf('Huyện') < 0
+                    lower &&
+                    lower.indexOf('Thành Phố'.toLowerCase()) < 0 &&
+                    lower.indexOf('Quận'.toLowerCase()) < 0 &&
+                    lower.indexOf('Huyện'.toLowerCase()) < 0 &&
+                    lower.indexOf('Thị Xã'.toLowerCase()) < 0
                 ) {
                     return 'Quận ' + name;
                 }

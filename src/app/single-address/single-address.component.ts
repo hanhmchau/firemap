@@ -1,6 +1,6 @@
 import { map, switchMap } from 'rxjs/operators';
 import { LatLngLiteral } from '@agm/core';
-import { Component, Input } from '@angular/core';
+import { Component, Input, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import {
@@ -25,6 +25,8 @@ import consts from '../../consts';
 export class SingleAddressComponent {
     @Input()
     address: Address;
+    @ViewChild('citySelect')
+    citySelectRef: ElementRef;
     private width: number;
     private marker: Marker;
     private mapSubject: Subject<Map>;
@@ -135,45 +137,31 @@ export class SingleAddressComponent {
     }
 
     loadWards() {
-        if (this.fetchWards) {
-            this.mapService
-            .searchDistrict(this.address.district)
-            .pipe(switchMap(geonameId => this.mapService.getWards(geonameId)))
-            .subscribe(wards => {
-                if (wards.length) {
-                    this.fetchWards = false;
-                    this.wards = wards;
-                }
-            });
-        }
+        this.mapService.loadWards(this.address.district).subscribe(wards => {
+            this.fetchWards = false;
+            if (wards.length) {
+                this.wards = wards;
+            }
+        });
     }
 
     loadDistricts() {
-        if (this.fetchDistricts) {
-            this.mapService
-            .searchCity(this.address.city)
-            .pipe(switchMap(geonameId => this.mapService.getDistricts(geonameId)))
-            .subscribe(districts => {
-                this.fetchDistricts = false;
-                this.districts = districts;
-            });
-        }
+        this.mapService.loadDistricts(this.address.city).subscribe(districts => {
+            this.fetchDistricts = false;
+            this.districts = districts;
+        });
     }
 
     loadCities() {
-        if (this.fetchCities) {
-            this.mapService
-            .searchCountry(this.address.country)
-            .pipe(switchMap(geonameId => this.mapService.getCities(geonameId)))
-            .subscribe(cities => {
-                this.fetchCities = false;
-                this.cities = cities;
-            });
-        }
+        this.mapService.loadCities(this.address.country).subscribe(cities => {
+            this.fetchCities = false;
+            this.cities = cities;
+            this.citySelectRef.nativeElement.style.size = cities.length;
+            this.citySelectRef.nativeElement.focus();
+        });
     }
 
     onMapUpdated(map: Map) {
-        console.log('nexting...', map)
         this.mapSubject.next(map);
     }
 
@@ -255,9 +243,9 @@ export class SingleAddressComponent {
     }
 
     onCityChanged(cityId: string) {
-        this.address.city = this.cities.filter(
-            city => city === cityId
-        )[0];
+        this.address.city = this.cities.filter(city => city === cityId)[0];
+        this.districts = [];
+        this.wards = [];
         delete this.address.district;
         delete this.address.ward;
         this.fetchWards = true;
@@ -266,18 +254,15 @@ export class SingleAddressComponent {
     }
 
     onDistrictChanged(districtId: string) {
-        this.address.district = this.districts.filter(
-            d => d === districtId
-        )[0];
+        this.address.district = this.districts.filter(d => d === districtId)[0];
+        this.wards = [];
         this.address.ward = '';
         this.fetchWards = true;
         this.refreshMap();
     }
 
     onWardChanged(wardId: string) {
-        this.address.ward = this.wards.filter(
-            ward => ward === wardId
-        )[0];
+        this.address.ward = this.wards.filter(ward => ward === wardId)[0];
         this.address.wardId = wardId;
         this.refreshMap();
     }
