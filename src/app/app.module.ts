@@ -25,6 +25,17 @@ import { ApolloModule, APOLLO_OPTIONS } from 'apollo-angular';
 import { HttpLinkModule, HttpLink } from 'apollo-angular-link-http';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 
+const defaultOptions = {
+    watchQuery: {
+        fetchPolicy: 'network-only',
+        errorPolicy: 'ignore'
+    },
+    query: {
+        fetchPolicy: 'network-only',
+        errorPolicy: 'all'
+    }
+};
+
 @NgModule({
     declarations: [
         // add components here
@@ -68,8 +79,10 @@ import { InMemoryCache } from 'apollo-cache-inmemory';
                 return {
                     cache: new InMemoryCache(),
                     link: httpLink.create({
-                        uri: 'https://us-central1-firemap-219503.cloudfunctions.net/api/graphql'
-                    })
+                        uri:
+                            'https://us-central1-firemap-219503.cloudfunctions.net/api/graphql'
+                    }),
+                    defaultOptions
                 };
             },
             deps: [HttpLink]
