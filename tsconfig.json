@@ -6,13 +6,12 @@
         "removeComments": true,
         "experimentalDecorators": true,
         "allowJs": true,
-        "emitDecoratorMetadata": true
+        "emitDecoratorMetadata": true,
+        "lib": ["es2017", "dom", "esnext.asynciterable"]
     },
     "awesomeTypescriptLoaderOptions": {
         "useCache": true,
         "forceIsolatedModules": true,
-        "reportFiles": [
-            "src/**/*.{ts,tsx}"
-        ]
+        "reportFiles": ["src/**/*.{ts,tsx}"]
     }
 }

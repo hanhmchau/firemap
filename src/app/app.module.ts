@@ -21,6 +21,9 @@ import { MapService } from './services/map.service';
 import { SingleAddressComponent } from './single-address/single-address.component';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
 import { NotFoundComponent } from './not-found/not-found.component';
+import { ApolloModule, APOLLO_OPTIONS } from 'apollo-angular';
+import { HttpLinkModule, HttpLink } from 'apollo-angular-link-http';
+import { InMemoryCache } from 'apollo-cache-inmemory';
 
 @NgModule({
     declarations: [
@@ -51,12 +54,26 @@ import { NotFoundComponent } from './not-found/not-found.component';
             preventDuplicates: true,
             positionClass: 'toast-bottom-right'
         }),
-        InfiniteScrollModule
+        InfiniteScrollModule,
+        HttpLinkModule,
+        ApolloModule
     ],
     exports: [],
     providers: [
         RoutingService,
-        MapService
+        MapService,
+        {
+            provide: APOLLO_OPTIONS,
+            useFactory(httpLink: HttpLink) {
+                return {
+                    cache: new InMemoryCache(),
+                    link: httpLink.create({
+                        uri: 'https://us-central1-firemap-219503.cloudfunctions.net/api/graphql'
+                    })
+                };
+            },
+            deps: [HttpLink]
+        }
         // add injectable things here
     ],
     bootstrap: [AppComponent]

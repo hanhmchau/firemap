@@ -21,6 +21,8 @@ import { map, switchMap, tap, take, count } from 'rxjs/operators';
 import consts from '../../consts';
 import Address from '../models/address';
 import Map from '../models/map';
+import gql from 'graphql-tag';
+import { Apollo } from 'apollo-angular';
 import Marker from '../models/marker';
 // tslint:disable-next-line:no-var-requires
 const parseXML = require('xml2js').parseString;
@@ -38,7 +40,7 @@ export class MapService {
     private lastQueriedId: string = null;
     private geonameUrl = 'https://secure.geonames.org/';
 
-    constructor(private http: HttpClient, private fb: AngularFirestore) {
+    constructor(private http: HttpClient, private fb: AngularFirestore, private apollo: Apollo) {
         this.client = createClient({
             key: consts.MAP_API
         });
@@ -99,6 +101,14 @@ export class MapService {
     }
 
     getAddresses(): Observable<Address[]> {
+        this.apollo.watchQuery({
+            query: gql``,
+            variables: {
+                
+            }
+        }).valueChanges.subscribe(result => {
+            console.log('meow meow');
+        });
         return this.addressCollectionRef.snapshotChanges().pipe(
             map(actions => {
                 return actions.map(action => {
