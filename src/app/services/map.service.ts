@@ -24,6 +24,7 @@ import Map from '../models/map';
 import gql from 'graphql-tag';
 import { Apollo } from 'apollo-angular';
 import Marker from '../models/marker';
+import { ApolloQueryResult } from 'apollo-client';
 // tslint:disable-next-line:no-var-requires
 const parseXML = require('xml2js').parseString;
 
@@ -33,14 +34,20 @@ const parseXML = require('xml2js').parseString;
 export class MapService {
     private categoryUrl = `${0}/category`; // URL to web api
     private addresses: Address[] = [];
+    private addressesSubject: Subject<Address[]> = new Subject<Address[]>();
     private activeMarker = new Subject<Marker>();
     private activeMap = new Subject<Map>();
     private client: GoogleMapsClient;
     private addressCollectionRef: AngularFirestoreCollection<Address>;
     private lastQueriedId: string = null;
     private geonameUrl = 'https://secure.geonames.org/';
+    addresses$: Observable<Address[]> = this.addressesSubject.asObservable();
 
-    constructor(private http: HttpClient, private fb: AngularFirestore, private apollo: Apollo) {
+    constructor(
+        private http: HttpClient,
+        private fb: AngularFirestore,
+        private apollo: Apollo
+    ) {
         this.client = createClient({
             key: consts.MAP_API
         });
@@ -101,24 +108,30 @@ export class MapService {
     }
 
     getAddresses(): Observable<Address[]> {
-        this.apollo.watchQuery({
-            query: gql``,
-            variables: {
-                
-            }
-        }).valueChanges.subscribe(result => {
-            console.log('meow meow');
+        return Observable.create((observer: Observer<Address[]>) => {
+            this.apollo
+            .query({
+                query: gql`
+                    query {
+                        addresses {
+                            id
+                            street
+                            lat
+                            lng
+                            ward
+                            country
+                            city
+                            district
+                            countryCode
+                        }
+                    }
+                `,
+                variables: {}
+            })
+            .subscribe((result: ApolloQueryResult<any>) => {
+                observer.next(result.data.addresses);
+            });
         });
-        return this.addressCollectionRef.snapshotChanges().pipe(
-            map(actions => {
-                return actions.map(action => {
-                    const data = action.payload.doc.data() as Address;
-                    const id = action.payload.doc.id;
-                    return { ...data, id };
-                });
-            }),
-            tap((addresses: Address[]) => (this.addresses = addresses))
-        );
     }
 
     setActiveMarker(marker: Marker): void {
@@ -158,19 +171,41 @@ export class MapService {
     }
 
     delete(id: string): void {
-        this.addressCollectionRef.doc(id).delete();
+        this.apollo
+            .mutate({
+                mutation: gql`
+                    mutation($id: String!) {
+                        delete(id: $id)
+                    }
+                `,
+                variables: {
+                    id
+                }
+            })
+            .subscribe();
     }
 
     insert(address: Address): Observable<string> {
-        return Observable.create((observer: Observer<string>) => {
-            delete address.id;
-            this.addressCollectionRef
-                .add(address)
-                .then((doc: DocumentReference) => {
-                    observer.next(doc.id);
+        delete address.id;
+        return this.apollo
+            .mutate({
+                mutation: gql`
+                    mutation($address: AddressInput!) {
+                        insert(input: $address)
+                    }
+                `,
+                variables: {
+                    address
+                }
+            })
+            .pipe(
+                map((result: any) => result.data.id),
+                tap(id => {
+                    address.id = id;
+                    this.addresses = [...this.addresses, address];
+                    this.addressesSubject.next(this.addresses);
                 })
-                .catch(() => observer.error({}));
-        });
+            );
     }
 
     update(address: Address): Observable<any> {
@@ -215,26 +250,37 @@ export class MapService {
             }));
             try {
                 const service = new google.maps.DistanceMatrixService();
-                service.getDistanceMatrix(
-                    {
-                        origins: [center],
-                        destinations: latLngs,
-                        travelMode: google.maps.TravelMode.DRIVING
-                    },
-                    (response: google.maps.DistanceMatrixResponse) => {
-                        const distances = response.rows[0].elements;
-                        const nearbyAddresses = response.destinationAddresses
-                            .map((addr, i) => ({
-                                id: otherAddresses[i].id,
-                                address: Address.toAddress(otherAddresses[i]),
-                                distance: distances[i].distance
-                            }))
-                            .filter(addr => addr.distance.value <= 25 * 1000) // 25km
-                            .sort((a, b) => a.distance.value - b.distance.value)
-                            .slice(0, 3);
-                        observer.next(nearbyAddresses);
-                    }
-                );
+                if (center.lat && center.lng) {
+                    service.getDistanceMatrix(
+                        {
+                            origins: [center],
+                            destinations: latLngs,
+                            travelMode: google.maps.TravelMode.DRIVING
+                        },
+                        (response: google.maps.DistanceMatrixResponse) => {
+                            if (response.rows[0]) {
+                                const distances = response.rows[0].elements;
+                                const nearbyAddresses = response.destinationAddresses
+                                    .map((addr, i) => ({
+                                        id: otherAddresses[i].id,
+                                        address: Address.toAddress(
+                                            otherAddresses[i]
+                                        ),
+                                        distance: distances[i].distance
+                                    }))
+                                    .filter(
+                                        addr => addr.distance.value <= 25 * 1000
+                                    ) // 25km
+                                    .sort(
+                                        (a, b) =>
+                                            a.distance.value - b.distance.value
+                                    )
+                                    .slice(0, 3);
+                                observer.next(nearbyAddresses);    
+                            }
+                        }
+                    );
+                }
             } catch (e) {
                 return;
             }
@@ -551,7 +597,6 @@ export class MapService {
             if (/\d/.test(comp)) {
                 try {
                     const num = parseInt(comp.split(' ')[1].trim(), 10);
-                    console.log(num);
                     return 'Quận ' + consts.NUMBERS[num - 1];
                 } catch (e) {
                     return comp;
