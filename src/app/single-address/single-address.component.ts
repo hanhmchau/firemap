@@ -123,7 +123,6 @@ export class SingleAddressComponent {
             ...address,
             ...latLng
         };
-        console.log(this.address);
         this.fetchWards = true;
         if (oldAddress.district !== address.district) {
             this.fetchWards = true;
