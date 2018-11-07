@@ -14,7 +14,7 @@
                     <th style="width: 15%" scope="col">Actions</th>
                 </tr>
             </thead>
-            <tbody infiniteScroll [infiniteScrollDistance]="2" [infiniteScrollThrottle]="50" (scrolled)="onScroll()">
+            <tbody>
                 <app-address [editing]="activeAddress && address.id === activeAddress.id"
                     [address]="address" (onEdit)="onEdit($event)" (onStopEdit)="onStopEdit($event)" (onDelete)="onDelete($event)"
                     *ngFor="let address of addresses"></app-address>
