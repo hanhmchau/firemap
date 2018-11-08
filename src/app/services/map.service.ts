@@ -56,7 +56,7 @@ export class MapService {
     }
 
     geocode(address: string): Observable<LatLngLiteral | undefined> {
-        if (!address) {
+        if (address) {
             const key = consts.MAP_API;
             const params = new HttpParams()
                 .set('key', key)
