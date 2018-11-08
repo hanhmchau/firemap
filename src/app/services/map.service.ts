@@ -130,7 +130,8 @@ export class MapService {
                     variables: {}
                 })
                 .subscribe((result: ApolloQueryResult<any>) => {
-                    observer.next(result.data.addresses);
+                    const addresses = (result.data.addresses as Address[]).sort((a, b) => (a.id.localeCompare(b.id)));
+                    observer.next(addresses);
                 });
         });
     }
