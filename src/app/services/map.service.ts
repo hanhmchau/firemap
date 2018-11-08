@@ -186,8 +186,17 @@ export class MapService {
             .subscribe();
     }
 
-    insert(address: Address): Observable<string> {
-        delete address.id;
+    insert(addr: Address): Observable<string> {
+        const address: Address = {
+            street: addr.street,
+            country: addr.country,
+            countryCode: addr.countryCode,
+            city: addr.city,
+            district: addr.district,
+            ward: addr.ward,
+            lat: addr.lat,
+            lng: addr.lng
+        };
         return this.apollo
             .mutate({
                 mutation: gql`
@@ -209,11 +218,19 @@ export class MapService {
             );
     }
 
-    update(address: Address): Observable<any> {
+    update(addr: Address): Observable<any> {
+        const address: Address = {
+            street: addr.street,
+            country: addr.country,
+            countryCode: addr.countryCode,
+            city: addr.city,
+            district: addr.district,
+            ward: addr.ward,
+            lat: addr.lat,
+            lng: addr.lng
+        };
         return Observable.create((observer: Observer<any>) => {
-            const id = address.id;
-            delete address.id;
-            delete (address as any).__typename;
+            const id = addr.id;
             this.apollo
                 .mutate({
                     mutation: gql`
