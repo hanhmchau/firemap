@@ -212,27 +212,48 @@ export class MapService {
         return Observable.create((observer: Observer<any>) => {
             const id = address.id;
             delete address.id;
-            this.addressCollectionRef
-                .doc(id)
-                .update(address)
-                .then(() => observer.next({}))
-                .catch(() => observer.error({}));
+            delete (address as any).__typename;
+            this.apollo
+                .mutate({
+                    mutation: gql`
+                        mutation($id: String!, $address: AddressInput!) {
+                            update(id: $id, input: $address)
+                        }
+                    `,
+                    variables: {
+                        id,
+                        address
+                    }
+                })
+                .subscribe(() => {
+                    observer.next(id);
+                });
         });
     }
 
     getById(id: string): Observable<Address> {
-        return this.addressCollectionRef
-            .doc(id)
-            .snapshotChanges()
-            .pipe(
-                map(action => {
-                    const data = action.payload.data() as Address;
-                    return {
-                        ...data,
-                        id
-                    };
-                })
-            );
+        return this.apollo
+            .query({
+                query: gql`
+                    query($id: String!) {
+                        address(id: $id) {
+                            id
+                            street
+                            lat
+                            lng
+                            ward
+                            country
+                            city
+                            district
+                            countryCode
+                        }
+                    }
+                `,
+                variables: {
+                    id
+                }
+            })
+            .pipe(map((result: ApolloQueryResult<any>) => result.data.address));
     }
 
     getNearby(address: Address): Observable<any[]> {
