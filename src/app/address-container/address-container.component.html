@@ -15,16 +15,18 @@
                 </tr>
             </thead>
             <tbody>
-                <app-address [editing]="activeAddress && address.id === activeAddress.id"
-                    [address]="address" (onEdit)="onEdit($event)" (onStopEdit)="onStopEdit($event)" (onDelete)="onDelete($event)"
-                    *ngFor="let address of addresses"></app-address>
+                <app-address [editing]="activeAddress && address.id === activeAddress.id" [address]="address" (onEdit)="onEdit($event)"
+                    (onStopEdit)="onStopEdit($event)" (onDelete)="onDelete($event)" *ngFor="let address of addresses"></app-address>
             </tbody>
         </table>
     </ng-container>
     <ng-template #noAddress>
-        <div class="alert alert-primary" role="alert">
+        <div *ngIf="!loading; else loadingComponent" class="alert alert-primary" role="alert">
             There is no address in the list yet.
         </div>
+        <ng-template #loadingComponent>
+            <div class="loader big"></div>
+        </ng-template>
     </ng-template>
 
 </div>

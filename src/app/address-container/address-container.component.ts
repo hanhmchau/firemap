@@ -13,6 +13,7 @@ export class AddressContainerComponent {
     onFocusMap: EventEmitter<Address> = new EventEmitter();
     private addresses: Address[] = [];
     private activeAddress: Address;
+    private loading = false;
 
     constructor(private mapService: MapService) {}
 
@@ -30,8 +31,10 @@ export class AddressContainerComponent {
     }
 
     queryData() {
+        this.loading = true;
         this.mapService.getAddresses().subscribe((addresses: Address[]) => {
             this.addresses = addresses;
+            this.loading = false;
         });
     }
 
