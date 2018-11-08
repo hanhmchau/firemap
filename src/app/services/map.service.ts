@@ -41,6 +41,7 @@ export class MapService {
     private addressCollectionRef: AngularFirestoreCollection<Address>;
     private lastQueriedId: string = null;
     private geonameUrl = 'https://secure.geonames.org/';
+    // tslint:disable-next-line:member-ordering
     addresses$: Observable<Address[]> = this.addressesSubject.asObservable();
 
     constructor(
@@ -110,27 +111,27 @@ export class MapService {
     getAddresses(): Observable<Address[]> {
         return Observable.create((observer: Observer<Address[]>) => {
             this.apollo
-            .query({
-                query: gql`
-                    query {
-                        addresses {
-                            id
-                            street
-                            lat
-                            lng
-                            ward
-                            country
-                            city
-                            district
-                            countryCode
+                .query({
+                    query: gql`
+                        query {
+                            addresses {
+                                id
+                                street
+                                lat
+                                lng
+                                ward
+                                country
+                                city
+                                district
+                                countryCode
+                            }
                         }
-                    }
-                `,
-                variables: {}
-            })
-            .subscribe((result: ApolloQueryResult<any>) => {
-                observer.next(result.data.addresses);
-            });
+                    `,
+                    variables: {}
+                })
+                .subscribe((result: ApolloQueryResult<any>) => {
+                    observer.next(result.data.addresses);
+                });
         });
     }
 
@@ -297,7 +298,7 @@ export class MapService {
                                             a.distance.value - b.distance.value
                                     )
                                     .slice(0, 3);
-                                observer.next(nearbyAddresses);    
+                                observer.next(nearbyAddresses);
                             }
                         }
                     );
