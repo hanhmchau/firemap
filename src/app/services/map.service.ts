@@ -78,8 +78,9 @@ export class MapService {
                         return of(undefined);
                     })
                 );
+        } else {
+            return of(undefined);
         }
-        return of(undefined);
     }
 
     reverseGeocode(lat: number, lng: number): Observable<Address> {
@@ -636,9 +637,10 @@ export class MapService {
             }
             if (/\d/.test(comp)) {
                 try {
-                    const num = parseInt(comp.split(' ')[1].trim(), 10);
+                    const words = comp.split(' ').filter((el, i) => i > 0).join(' ');
+                    const num = parseInt(words, 10);
                     return 'Quận ' + consts.NUMBERS[num - 1];
-                } catch (e) {
+            } catch (e) {
                     return comp;
                 }
             }
@@ -703,7 +705,7 @@ export class MapService {
                 map((wards: any) =>
                     wards.geonames
                         .map((c: any) =>
-                            this.normalize(c.toponymName, featureCode)
+                            this.normalize(c.toponymName, featureCode, c.countryCode === 'VN')
                         )
                         .sort((a: string, b: string) =>
                             a
@@ -714,8 +716,11 @@ export class MapService {
             );
     }
 
-    private normalize(name: string, featureCode: string): string {
+    private normalize(name: string, featureCode: string, isVietnam: boolean): string {
         const lower = name.toLowerCase();
+        if (!isVietnam) {
+            return;
+        }
         switch (featureCode) {
             case consts.GEONAME_LEVELS.WARD:
                 if (
@@ -760,7 +765,8 @@ export class MapService {
                 }
                 if (/\d/.test(name)) {
                     try {
-                        const num = parseInt(name.split(' ')[0].trim(), 10);
+                        const words = name.split(' ').filter((el, i) => i > 0).join(' ');
+                        const num = parseInt(words, 10);
                         return 'Quận ' + consts.NUMBERS[num - 1];
                     } catch (e) {
                         return name;
@@ -786,6 +792,15 @@ export class MapService {
 
             if (destName.indexOf('Quận Ba') >= 0) {
                 return 'Quận 3';
+            }
+        }
+        if (featureCode === consts.GEONAME_LEVELS.CITY) {
+            if (destName.indexOf('Đà Nẵng') >= 0) {
+                return 'Da Nang';
+            }
+
+            if (destName.indexOf('Bình Định') >= 0) {
+                return 'Binh Dinh';
             }
         }
         return destName;
