@@ -1,4 +1,5 @@
-:host {
+.row {
+    overflow: visible !important;
 }
 
 .vert-aligned {

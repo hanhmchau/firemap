@@ -23,6 +23,7 @@ import { InfiniteScrollModule } from 'ngx-infinite-scroll';
 import { NotFoundComponent } from './not-found/not-found.component';
 import { ApolloModule, APOLLO_OPTIONS } from 'apollo-angular';
 import { HttpLinkModule, HttpLink } from 'apollo-angular-link-http';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 
 const defaultOptions = {
@@ -50,6 +51,7 @@ const defaultOptions = {
     imports: [
         BrowserModule,
         FormsModule,
+        NgSelectModule,
         HttpClientModule,
         AppRoutingModule,
         BrowserAnimationsModule,

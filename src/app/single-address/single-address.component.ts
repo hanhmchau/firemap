@@ -25,8 +25,6 @@ import consts from '../../consts';
 export class SingleAddressComponent {
     @Input()
     address: Address;
-    @ViewChild('citySelect')
-    citySelectRef: ElementRef;
     private width: number;
     private marker: Marker;
     private mapSubject: Subject<Map>;
@@ -157,8 +155,6 @@ export class SingleAddressComponent {
         this.mapService.loadCities(this.address.country).subscribe(cities => {
             this.fetchCities = false;
             this.cities = cities;
-            this.citySelectRef.nativeElement.style.size = cities.length;
-            this.citySelectRef.nativeElement.focus();
         });
     }
 
@@ -224,7 +220,8 @@ export class SingleAddressComponent {
         });
     }
 
-    onCountryChanged(countryCode: string) {
+    onCountryChanged(country: any) {
+        const countryCode = country.code;
         const countryName = this.countries.filter(c => c.code === countryCode)[0]
             .name;
         this.address.countryCode = countryCode;

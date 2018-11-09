@@ -3,41 +3,84 @@
         <div class="col-md-6">
             <form #addressForm="ngForm">
                 <div class="form-group col-lg-11">
-                    <label>Street</label><small class="d-inline-block ml-2 text-muted text-danger">Required</small>
-                    <input name="street" #street="ngModel" [ngClass]="{'form-control': true, 'is-invalid': (street.dirty || trySaved ) && !address.street}"
-                        (blur)="refreshMap()" spellcheck="false" [(ngModel)]="address.street" placeholder="Street">
+                    <label>Street</label
+                    ><small class="d-inline-block ml-2 text-muted text-danger"
+                        >Required</small
+                    >
+                    <input
+                        name="street"
+                        #street="ngModel"
+                        [ngClass]="{
+                            'form-control': true,
+                            '': (street.dirty || trySaved) && !address.street
+                        }"
+                        (blur)="refreshMap()"
+                        spellcheck="false"
+                        [(ngModel)]="address.street"
+                        placeholder="Street"
+                    />
                 </div>
                 <div class="form-group col-lg-11" *ngIf="countries.length">
                     <label>Country</label>
-                    <select class="form-control" id="countries" name="country" [(ngModel)]="address.countryCode"
-                        (ngModelChange)="onCountryChanged($event)">
-                        <option *ngFor="let country of countries" [value]="country.code">{{country.name}}</option>
-                    </select>
+                    <ng-select
+                        name="country"
+                        bindValue="code"
+                        bindLabel="name"
+                        [items]="countries"
+                        [(ngModel)]="address.countryCode"
+                        [clearable]="false"
+                        (change)="onCountryChanged($event)"
+                    >
+                        >
+                    </ng-select>
                 </div>
                 <div class="form-group col-lg-11">
                     <label>City</label>
-                    <select #citySelect class="form-control" id="cities" name="city" (click)="loadCities()" [(ngModel)]="address.city" (ngModelChange)="onCityChanged($event)">
-                        <option *ngFor="let city of cities" [value]="city">{{city}}</option>
-                    </select>
+                    <ng-select
+                        name="city"
+                        [items]="cities"
+                        [(ngModel)]="address.city"
+                        [clearable]="false"
+                        (focus)="loadCities()"
+                        (change)="onCityChanged($event)"
+                    >
+                        >
+                    </ng-select>
                 </div>
                 <div class="form-group col-lg-11">
                     <label>District</label>
-                    <select class="form-control" id="districts" name="district" (click)="loadDistricts()" [(ngModel)]="address.district"
-                        (ngModelChange)="onDistrictChanged($event)">
-                        <option *ngFor="let district of districts" [value]="district">{{district}}</option>
-                    </select>
+                    <ng-select
+                        name="district"
+                        [items]="districts"
+                        [(ngModel)]="address.district"
+                        [clearable]="false"
+                        (focus)="loadDistricts()"
+                        (change)="onDistrictChanged($event)"
+                    >
+                        >
+                    </ng-select>
                 </div>
                 <div class="form-group col-lg-11">
                     <label>Ward</label>
-                    <select class="form-control" id="wards" name="ward" (click)="loadWards()" [(ngModel)]="address.ward" (ngModelChange)="onWardChanged($event)">
-                        <option *ngFor="let ward of wards" [value]="ward">{{ward}}</option>
-                        <option *ngIf="wards.length === 0" disabled>No results</option>
-                    </select>
+                    <ng-select
+                        name="ward"
+                        [items]="wards"
+                        [(ngModel)]="address.ward"
+                        [clearable]="false"
+                        (focus)="loadWards()"
+                        (change)="onWardChanged($event)"
+                    >
+                        >
+                    </ng-select>
                 </div>
                 <div class="form-group col-lg-11">
-                    <button (click)="save()" type="button" class="btn btn-default" aria-label="Edit">
-                        <fa name="save"></fa>
-                        Save
+                    <button
+                        (click)="save()"
+                        type="button"
+                        class="btn btn-default"
+                        aria-label="Edit"
+                    >
+                        <fa name="save"></fa> Save
                     </button>
                 </div>
                 <div class="mt-2">
@@ -46,10 +89,12 @@
                             Street is always required.
                         </div>
                         <div *ngIf="!wardDistrictValidated">
-                            If "city" is present, then "ward" and "district" are not required.
+                            If "city" is present, then "ward" and "district" are
+                            not required.
                         </div>
                         <div *ngIf="!wardDistrictValidated">
-                            If "city" is not present, then both "ward" and "district" are required.
+                            If "city" is not present, then both "ward" and
+                            "district" are required.
                         </div>
                     </div>
                 </div>
@@ -57,18 +102,33 @@
         </div>
         <div class="col-md-6">
             <div class="position-relative">
-                <app-map *ngIf="map$" (onAddressUpdated)="onAddressUpdated($event)" (onLoaded)="onLoaded($event)"
-                    (onMapUpdated)="onMapUpdated($event)" (onMarkerUpdated)="onMarkerUpdated($event)" [marker]="marker"
-                    [map$]="map$" [address]="address"></app-map>
+                <app-map
+                    *ngIf="map$"
+                    (onAddressUpdated)="onAddressUpdated($event)"
+                    (onLoaded)="onLoaded($event)"
+                    (onMapUpdated)="onMapUpdated($event)"
+                    (onMarkerUpdated)="onMarkerUpdated($event)"
+                    [marker]="marker"
+                    [map$]="map$"
+                    [address]="address"
+                ></app-map>
             </div>
             <div class="mt-4" *ngIf="nearbyAddresses.length">
                 <h6>Nearby addresses</h6>
                 <div class="row">
-                    <div *ngFor="let nearby of nearbyAddresses" class="col-md-4 p-2">
-                        <a [routerLink]="[ '/address', nearby.id ]" class="card-link">
+                    <div
+                        *ngFor="let nearby of nearbyAddresses"
+                        class="col-md-4 p-2"
+                    >
+                        <a
+                            [routerLink]="['/address', nearby.id]"
+                            class="card-link"
+                        >
                             <div class="card h-100 card-flex">
-                                <div class="title">{{nearby.address}}</div>
-                                <div class="mt-3 text-info small">{{nearby.distance.text}}</div>
+                                <div class="title">{{ nearby.address }}</div>
+                                <div class="mt-3 text-info small">
+                                    {{ nearby.distance.text }}
+                                </div>
                             </div>
                         </a>
                     </div>
