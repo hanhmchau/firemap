@@ -17,6 +17,4 @@ app.get("*", function(req, res) {
     });
 });
 
-console.log(process.env.MAP_API);
-
 app.listen(port);

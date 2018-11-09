@@ -719,7 +719,7 @@ export class MapService {
     private normalize(name: string, featureCode: string, isVietnam: boolean): string {
         const lower = name.toLowerCase();
         if (!isVietnam) {
-            return;
+            return name;
         }
         switch (featureCode) {
             case consts.GEONAME_LEVELS.WARD:
